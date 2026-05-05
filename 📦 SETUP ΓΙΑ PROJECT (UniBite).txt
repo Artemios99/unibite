@@ -1,0 +1,97 @@
+Setup ομάδας για UniBite
+1. Κατεβάζουμε τα προγράμματα
+VS Code
+
+https://code.visualstudio.com/
+
+Node.js LTS
+
+https://nodejs.org/
+
+Μετά την εγκατάσταση, έλεγχος σε terminal:
+
+node -v
+npm -v
+XAMPP
+
+https://www.apachefriends.org/
+
+Μετά την εγκατάσταση:
+
+XAMPP Control Panel → Start MySQL
+
+Αν η MySQL δεν ξεκινάει λόγω port 3306, αλλάζουμε port σε 3307.
+
+2. Βάζουμε VS Code extensions
+
+Στο VS Code:
+
+Ctrl + Shift + X
+
+Εγκαθιστούμε:
+
+Live Server
+Prettier - Code formatter
+Thunder Client
+
+Προαιρετικά:
+
+MySQL
+ES7+ JavaScript snippets
+3. Ρυθμίζουμε Git
+
+Σε terminal:
+
+git config --global user.name "Το Όνομά σου"
+git config --global user.email "το-email-σου@example.com"
+
+Έλεγχος:
+
+git config --list
+4. Κατεβάζουμε το project από GitHub
+
+Πηγαίνουμε στον φάκελο που θέλουμε να μπει το project, π.χ. Desktop:
+
+cd Desktop
+
+Μετά:
+
+git clone https://github.com/USERNAME/unibite.git
+
+Βάζουμε το σωστό link του repo.
+
+5. Μπαίνουμε στον φάκελο του project
+cd unibite
+6. Κατεβάζουμε τα dependencies
+npm install
+
+Αυτό κατεβάζει ό,τι χρειάζεται το backend, π.χ.:
+
+express
+cors
+mysql2
+7. Κάθε φορά που δουλεύουμε
+
+Πρώτα παίρνουμε τις τελευταίες αλλαγές:
+
+git pull
+
+Μετά κάνουμε αλλαγές στον κώδικα.
+
+8. Για να τρέξει το project
+
+Ανοίγουμε XAMPP:
+
+Start MySQL
+
+Μετά στο VS Code terminal:
+
+node server.js
+
+Αν όλα είναι σωστά, ανοίγουμε:
+
+http://localhost:3000
+9. Όταν τελειώσουμε αλλαγές
+git add .
+git commit -m "περιγραφή αλλαγών"
+git push
