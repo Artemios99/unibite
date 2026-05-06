@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UniBite</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>🍽️ UniBite</h1>
+    <p>Φοιτητικό Food Sharing</p>
+  </header>
+
+  <main>
+    <section class="form-section">
+      <h2>Νέα Αγγελία Φαγητού</h2>
+
+      <form id="mealForm">
+        <input type="text" id="title" placeholder="Τίτλος φαγητού" required />
+
+        <textarea id="description" placeholder="Περιγραφή" required></textarea>
+
+        <input type="number" id="portions" placeholder="Μερίδες" required />
+
+        <input type="text" id="location" placeholder="Τοποθεσία παραλαβής" required />
+
+        <input type="datetime-local" id="pickup_time" required />
+
+        <button type="submit">Προσθήκη Αγγελίας</button>
+      </form>
+    </section>
+
+    <section class="meals-section">
+      <h2>Διαθέσιμες Αγγελίες</h2>
+      <div id="mealsList"></div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
