@@ -7,16 +7,13 @@ if (!loggedUser) {
   window.location.href = "login.html";
 }
 
-// USER INFO
 document.getElementById("userInfo").innerText =
   "Logged in as: " + loggedUser.username + " (" + loggedUser.role + ")";
 
-// ROLE CONTROL
 if (loggedUser.role !== "cook") {
   mealForm.style.display = "none";
 }
 
-// LOAD MEALS
 async function loadMeals() {
   const res = await fetch("http://localhost:3000/api/meals");
   const meals = await res.json();
@@ -25,14 +22,13 @@ async function loadMeals() {
 
   meals.forEach((meal) => {
     const card = document.createElement("div");
-    card.className = "meal-card";
 
     card.innerHTML = `
       <h3>${meal.title}</h3>
       <p>${meal.description}</p>
-      <p><strong>Μερίδες:</strong> ${meal.portions}</p>
-      <p><strong>Τοποθεσία:</strong> ${meal.location}</p>
-      <p><strong>Παραλαβή:</strong> ${meal.pickup_time}</p>
+      <p>Μερίδες: ${meal.portions}</p>
+      <p>Τοποθεσία: ${meal.location}</p>
+      <p>Παραλαβή: ${meal.pickup_time}</p>
 
       ${
         meal.user_id === loggedUser.id
@@ -45,7 +41,6 @@ async function loadMeals() {
   });
 }
 
-// ADD MEAL
 mealForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -68,12 +63,7 @@ mealForm.addEventListener("submit", async (e) => {
   loadMeals();
 });
 
-// DELETE MEAL
 async function deleteMeal(id) {
-  const confirmDelete = confirm("Θέλεις σίγουρα να διαγράψεις;");
-
-  if (!confirmDelete) return;
-
   await fetch(`http://localhost:3000/api/meals/${id}`, {
     method: "DELETE",
   });
@@ -81,7 +71,6 @@ async function deleteMeal(id) {
   loadMeals();
 }
 
-// LOGOUT
 function logout() {
   localStorage.removeItem("user");
   window.location.href = "login.html";

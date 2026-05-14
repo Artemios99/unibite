@@ -2,47 +2,40 @@
 <html lang="el">
 <head>
   <meta charset="UTF-8">
-  <title>UniBite Login</title>
+  <title>UniBite</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header>
   <h1>🍽️ UniBite</h1>
+  <button onclick="logout()">Logout</button>
+  <p id="userInfo"></p>
 </header>
 
 <main>
 
-  <section class="form-section">
-    <h2>Εγγραφή</h2>
+  <section>
+    <h2>Πρόσθεσε φαγητό</h2>
 
-    <form id="registerForm">
-      <input type="text" id="regUsername" placeholder="Username" required>
-      <input type="email" id="regEmail" placeholder="Email" required>
-      <input type="password" id="regPassword" placeholder="Password" required>
+    <form id="mealForm">
+      <input type="text" id="title" placeholder="Τίτλος" required>
+      <input type="text" id="description" placeholder="Περιγραφή" required>
+      <input type="number" id="portions" placeholder="Μερίδες" required>
+      <input type="text" id="location" placeholder="Τοποθεσία" required>
+      <input type="datetime-local" id="pickup_time" required>
 
-      <select id="regRole">
-        <option value="cook">Cook</option>
-        <option value="consumer">Consumer</option>
-      </select>
-
-      <button type="submit">Register</button>
+      <button type="submit">Προσθήκη</button>
     </form>
   </section>
 
-  <section class="form-section">
-    <h2>Login</h2>
-
-    <form id="loginForm">
-      <input type="email" id="loginEmail" placeholder="Email" required>
-      <input type="password" id="loginPassword" placeholder="Password" required>
-
-      <button type="submit">Login</button>
-    </form>
+  <section>
+    <h2>Διαθέσιμα φαγητά</h2>
+    <div id="mealsList"></div>
   </section>
 
 </main>
 
-<script src="auth.js"></script>
+<script src="script.js"></script>
 </body>
 </html>

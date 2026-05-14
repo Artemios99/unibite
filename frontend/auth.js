@@ -52,7 +52,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
       alert("Σύνδεση επιτυχής!");
 
       // 🔥 ΣΙΓΟΥΡΟ REDIRECT
-      window.location.href = "/unibite/frontend/index.html";
+      window.location.replace("index.html");
     } else {
       alert(result.error);
     }
