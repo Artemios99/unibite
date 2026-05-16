@@ -4,16 +4,13 @@ const requestsList = document.getElementById("requestsList");
 
 const loggedUser = JSON.parse(localStorage.getItem("user"));
 
-if (!loggedUser) {
-  window.location.href = "login.html";
-}
+if (!loggedUser) window.location.href = "login.html";
 
 document.getElementById("userInfo").innerText =
   loggedUser.username + " (" + loggedUser.role + ")";
 
-if (loggedUser.role !== "cook") {
+if (loggedUser.role !== "cook")
   document.getElementById("addMealSection").style.display = "none";
-}
 
 let selectedMealId = null;
 
@@ -31,7 +28,6 @@ async function loadMeals() {
       <h3>${meal.title}</h3>
       <p>${meal.description}</p>
       <p>Μερίδες: ${meal.portions}</p>
-      <p>Τοποθεσία: ${meal.location}</p>
       <p>Τιμή: ${meal.price}€</p>
 
       ${
@@ -55,20 +51,20 @@ async function loadMeals() {
 mealForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const mealData = {
+  const data = {
     user_id: loggedUser.id,
-    title: document.getElementById("title").value,
-    description: document.getElementById("description").value,
-    portions: document.getElementById("portions").value,
-    location: document.getElementById("location").value,
-    pickup_time: document.getElementById("pickup_time").value,
-    price: document.getElementById("price").value,
+    title: title.value,
+    description: description.value,
+    portions: portions.value,
+    location: location.value,
+    pickup_time: pickup_time.value,
+    price: price.value,
   };
 
   await fetch("http://localhost:3000/api/meals", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify(mealData),
+    body: JSON.stringify(data),
   });
 
   mealForm.reset();
@@ -80,68 +76,77 @@ async function deleteMeal(id) {
   await fetch(`http://localhost:3000/api/meals/${id}`, {
     method: "DELETE",
   });
-
   loadMeals();
 }
 
 // MODAL
-function openRequest(mealId, title) {
-  selectedMealId = mealId;
+function openRequest(id, title) {
+  selectedMealId = id;
+  requestModal.style.display = "block";
+  mealTitle.innerText = title;
 
-  document.getElementById("requestModal").style.display = "block";
-  document.getElementById("mealTitle").innerText = title;
-
-  const select = document.getElementById("portionSelect");
-  select.innerHTML = "";
-
+  portionSelect.innerHTML = "";
   for (let i = 1; i <= 10; i++) {
-    const option = document.createElement("option");
-    option.value = i;
-    option.text = i;
-    select.appendChild(option);
+    portionSelect.innerHTML += `<option value="${i}">${i}</option>`;
   }
 }
 
 function closeModal() {
-  document.getElementById("requestModal").style.display = "none";
+  requestModal.style.display = "none";
 }
 
 // SEND REQUEST
 async function submitRequest() {
-  const portions = document.getElementById("portionSelect").value;
-  const time = document.getElementById("requestTime").value;
-
   await fetch("http://localhost:3000/api/requests", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify({
       meal_id: selectedMealId,
       consumer_id: loggedUser.id,
-      portions,
-      time,
+      portions: portionSelect.value,
+      note: requestNote.value,
     }),
   });
 
-  alert("Αίτημα στάλθηκε!");
+  alert("στάλθηκε");
   closeModal();
 }
 
 // LOAD REQUESTS
-async function loadRequests() {
-  if (loggedUser.role !== "cook") return;
+async function loadMyRequests() {
+  if (loggedUser.role !== "consumer") return;
 
-  const res = await fetch(`http://localhost:3000/api/requests/${loggedUser.id}`);
+  const res = await fetch(`http://localhost:3000/api/myrequests/${loggedUser.id}`);
   const data = await res.json();
 
-  requestsList.innerHTML = "";
+  requestsList.innerHTML = "<h3>Οι παραγγελίες μου</h3>";
 
   data.forEach(r => {
-    const div = document.createElement("div");
-    div.innerHTML = `<p>${r.username} ζήτησε το "${r.title}"</p>`;
-    requestsList.appendChild(div);
+    requestsList.innerHTML += `
+      <div>
+        <p>Παρήγγειλες ${r.portions} από ${r.title}</p>
+
+        <button onclick="completeRequest(${r.id})">
+          Ολοκλήρωση
+        </button>
+      </div>
+    `;
   });
 }
 
+// ACCEPT
+async function completeRequest(id) {
+  await fetch("http://localhost:3000/api/requests/complete", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      request_id: id
+    }),
+  });
+
+  alert("Ολοκληρώθηκε!");
+  loadMyRequests();
+}
 // LOGOUT
 function logout() {
   localStorage.removeItem("user");
@@ -150,3 +155,4 @@ function logout() {
 
 loadMeals();
 loadRequests();
+loadMyRequests();
