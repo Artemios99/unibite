@@ -95,3 +95,60 @@ http://localhost:3000
 git add .
 git commit -m "περιγραφή αλλαγών"
 git push
+
+
+ΠΩΣ ΧΩΡΙΖΕΤΕ ΤΟ PROJECT ΠΑΝΩ ΣΤΑ FILES
+
+⚙️ 👤 ΑΤΟΜΟ 1 — CORE
+
+👉 Δουλεύει κυρίως εδώ:
+
+server.js
+db.js
+database/unibite.sql
+auth.js
+login.html
+index.html (structure μόνο)
+style.css (basic theme)
+🔥 ΤΙ ΚΑΝΕΙ
+✔ login / register (auth.js)
+✔ localStorage user
+✔ roles (cook / consumer)
+✔ database setup (SQL)
+✔ basic API routes
+✔ layout (header + sections)
+
+
+👨‍🍳 👤 ΑΤΟΜΟ 2 — COOK
+
+👉 Δουλεύει εδώ:
+
+server.js
+script.js
+index.html (requests section)
+🔥 ΤΙ ΚΑΝΕΙ
+✔ accept request
+✔ reject request
+✔ loadRequests() για cook
+✔ κουμπιά:
+   - Αποδοχή
+   - Απόρριψη
+✔ μείωση μερίδων
+
+
+🍽️ 👤 ΑΤΟΜΟ 3 — CONSUMER
+
+👉 Δουλεύει εδώ:
+
+script.js
+index.html (modal + meals)
+🔥 ΤΙ ΚΑΝΕΙ
+✔ openRequest()
+✔ submitRequest()
+✔ loadMyRequests()
+✔ completeRequest()
+✔ modal UI
+✔ κουμπί "Ζήτηση"
+✔ κουμπί "Ολοκλήρωση"
+
+chat: Web εφαρμογη Food Sharing
