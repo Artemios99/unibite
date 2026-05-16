@@ -46,3 +46,18 @@ CREATE TABLE ratings (
     FOREIGN KEY (meal_id) REFERENCES meals(id),
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+
+-- meals
+ALTER TABLE meals ADD price DECIMAL(5,2) DEFAULT 0;
+
+-- requests
+ALTER TABLE requests ADD portions INT;
+ALTER TABLE requests ADD note TEXT;
+
+-- αν έχεις user_id αντί για consumer_id:
+ALTER TABLE requests CHANGE user_id consumer_id INT;
+
+-- status update
+ALTER TABLE requests MODIFY status 
+ENUM('pending','accepted','completed') DEFAULT 'pending';
