@@ -9,13 +9,15 @@
 
 <header>
   <h1>🍽️ UniBite</h1>
-  <button onclick="logout()">Logout</button>
-  <p id="userInfo"></p>
+  <div>
+    <span id="userInfo"></span>
+    <button onclick="logout()">Logout</button>
+  </div>
 </header>
 
 <main>
 
-  <section>
+  <section id="addMealSection">
     <h2>Πρόσθεσε φαγητό</h2>
 
     <form id="mealForm">
@@ -24,17 +26,39 @@
       <input type="number" id="portions" placeholder="Μερίδες" required>
       <input type="text" id="location" placeholder="Τοποθεσία" required>
       <input type="datetime-local" id="pickup_time" required>
+      <input type="number" id="price" placeholder="Τιμή (€)" required>
 
       <button type="submit">Προσθήκη</button>
     </form>
   </section>
 
   <section>
-    <h2>Διαθέσιμα φαγητά</h2>
+    <h2>Φαγητά</h2>
     <div id="mealsList"></div>
   </section>
 
+  <section>
+    <h2>Αιτήματα</h2>
+    <div id="requestsList"></div>
+  </section>
+
 </main>
+
+<!-- MODAL -->
+<div id="requestModal" class="modal">
+  <div class="modal-content">
+    <h3 id="mealTitle"></h3>
+
+    <label>Μερίδες:</label>
+    <select id="portionSelect"></select>
+
+    <label>Ώρα:</label>
+    <input type="time" id="requestTime">
+
+    <button onclick="submitRequest()">Επιβεβαίωση</button>
+    <button onclick="closeModal()">Κλείσιμο</button>
+  </div>
+</div>
 
 <script src="script.js"></script>
 </body>
