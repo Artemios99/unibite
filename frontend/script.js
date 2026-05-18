@@ -97,46 +97,97 @@ function closeModal() {
 
 // SEND REQUEST
 async function submitRequest() {
-  await fetch("http://localhost:3000/api/requests", {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({
-      meal_id: selectedMealId,
-      consumer_id: loggedUser.id,
-      portions: portionSelect.value,
-      note: requestNote.value,
-    }),
-  });
+  console.log("SUBMIT CLICKED");
 
-  alert("στάλθηκε");
-  closeModal();
+  const data = {
+    meal_id: selectedMealId,
+    consumer_id: loggedUser.id,
+    portions: document.getElementById("portionSelect").value,
+    note: document.getElementById("requestNote").value,
+  };
+
+  console.log("SENDING:", data);
+
+  try {
+    const res = await fetch("http://localhost:3000/api/requests", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    const result = await res.json();
+    console.log("SERVER RESPONSE:", result);
+
+    if (!res.ok) {
+      alert("Σφάλμα στο request");
+      return;
+    }
+
+    alert("στάλθηκε!");
+    closeModal();
+
+  } catch (err) {
+    console.log("FETCH ERROR:", err);
+  }
 }
 
-// LOAD REQUESTS
-async function loadMyRequests() {
-  if (loggedUser.role !== "consumer") return;
+// =====================
+// LOAD REQUESTS (COOK)
+// =====================
+async function loadRequests() {
+  if (loggedUser.role !== "cook") return;
 
-  const res = await fetch(`http://localhost:3000/api/myrequests/${loggedUser.id}`);
+  const res = await fetch(`http://localhost:3000/api/requests/${loggedUser.id}`);
   const data = await res.json();
 
-  requestsList.innerHTML = "<h3>Οι παραγγελίες μου</h3>";
+  requestsList.innerHTML = "<h3>Αιτήματα</h3>";
 
   data.forEach(r => {
     requestsList.innerHTML += `
-      <div>
-        <p>Παρήγγειλες ${r.portions} από ${r.title}</p>
+      <div style="border:1px solid #ccc; padding:10px; margin:10px;">
+        <p>
+          <b>${r.username}</b> ζητά 
+          <b>${r.portions}</b> μερίδες από 
+          "<b>${r.title}</b>"
+        </p>
 
-        <button onclick="completeRequest(${r.id})">
-          Ολοκλήρωση
+        <button onclick="acceptRequest(${r.id}, ${r.portions})">
+          Αποδοχή
+        </button>
+
+        <button onclick="rejectRequest(${r.id})">
+          Απόρριψη
         </button>
       </div>
     `;
   });
 }
 
+// =====================
 // ACCEPT
-async function completeRequest(id) {
-  await fetch("http://localhost:3000/api/requests/complete", {
+// =====================
+async function acceptRequest(id, portions) {
+  await fetch("http://localhost:3000/api/requests/accept", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      request_id: id,
+      portions: portions
+    }),
+  });
+
+  alert("Αποδοχή!");
+  loadMeals();
+  loadRequests();
+}
+
+// =====================
+// REJECT
+// =====================
+async function rejectRequest(id) {
+  await fetch("http://localhost:3000/api/requests/reject", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify({
@@ -144,8 +195,8 @@ async function completeRequest(id) {
     }),
   });
 
-  alert("Ολοκληρώθηκε!");
-  loadMyRequests();
+  alert("Απόρριψη!");
+  loadRequests();
 }
 // LOGOUT
 function logout() {
@@ -155,4 +206,3 @@ function logout() {
 
 loadMeals();
 loadRequests();
-loadMyRequests();

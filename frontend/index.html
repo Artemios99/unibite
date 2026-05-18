@@ -44,19 +44,40 @@
 
 </main>
 
+<section>
+  <h2>Αιτήματα</h2>
+  <div id="requestsList"></div>
+</section>
+
 <!-- MODAL -->
 <div id="requestModal" class="modal">
   <div class="modal-content">
-    <h3 id="mealTitle"></h3>
+
+    <h2 id="mealTitle"></h2>
 
     <label>Τι θέλεις:</label>
-<input type="text" id="requestNote" placeholder="π.χ χωρίς αλάτι">
+    <input type="text" id="requestNote" placeholder="γράψε εδώ">
 
-<label>Μερίδες:</label>
-<select id="portionSelect"></select>
+    <br><br>
 
-<label>Ώρα:</label>
-<input type="time" id="requestTime">
+    <label>Μερίδες:</label>
+    <select id="portionSelect"></select>
+
+    <label>Ώρα:</label>
+    <input type="time" id="requestTime">
+
+    <br><br>
+
+    <div style="display:flex; gap:10px; justify-content:center;">
+      <button onclick="closeModal()" style="background:gray;">
+        Back
+      </button>
+
+      <button onclick="submitRequest()" style="background:#e67e22; color:white;">
+        Confirm
+      </button>
+    </div>
+
   </div>
 </div>
 
