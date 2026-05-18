@@ -4,6 +4,14 @@
   <meta charset="UTF-8">
   <title>UniBite - Login</title>
 
+  <!-- GOOGLE FONT -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- FONT AWESOME ICONS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
   <link rel="stylesheet" href="style.css">
 
   <!-- TOASTR CSS -->
@@ -11,22 +19,38 @@
 </head>
 <body>
 
+<div class="bg-shape bg-shape-1"></div>
+<div class="bg-shape bg-shape-2"></div>
+
 <header>
-  <h1>🍽️ UniBite</h1>
+  <div class="logo-circle">
+    <i class="fa-solid fa-utensils"></i>
+  </div>
+
+  <h1>UniBite</h1>
   <p>Μοιράσου φαγητό, βοήθησε άλλους</p>
 </header>
 
 <main>
 
-  <!-- LOGIN -->
   <section id="loginSection" class="form-section">
-    <h2>Σύνδεση</h2>
+    <h2><i class="fa-solid fa-right-to-bracket"></i> Σύνδεση</h2>
 
     <form id="loginForm">
-      <input type="email" id="loginEmail" placeholder="Email" required>
-      <input type="password" id="loginPassword" placeholder="Password" required>
+      <div class="input-group">
+        <i class="fa-solid fa-envelope"></i>
+        <input type="email" id="loginEmail" placeholder="Email" required>
+      </div>
 
-      <button type="submit">Σύνδεση</button>
+      <div class="input-group">
+        <i class="fa-solid fa-lock"></i>
+        <input type="password" id="loginPassword" placeholder="Password" required>
+      </div>
+
+      <button type="submit">
+        <i class="fa-solid fa-arrow-right"></i>
+        Σύνδεση
+      </button>
     </form>
 
     <p>
@@ -35,22 +59,38 @@
     </p>
   </section>
 
-  <!-- REGISTER -->
   <section id="registerSection" class="form-section" style="display: none;">
-    <h2>Εγγραφή</h2>
+    <h2><i class="fa-solid fa-user-plus"></i> Εγγραφή</h2>
 
     <form id="registerForm">
-      <input type="text" id="regUsername" placeholder="Username" required>
-      <input type="email" id="regEmail" placeholder="Email" required>
-      <input type="password" id="regPassword" placeholder="Password" required>
+      <div class="input-group">
+        <i class="fa-solid fa-user"></i>
+        <input type="text" id="regUsername" placeholder="Username" required>
+      </div>
 
-      <select id="regRole" required>
-        <option value="">Επίλεξε ρόλο</option>
-        <option value="cook">🍳 Μάγειρας</option>
-        <option value="consumer">🧍 Καταναλωτής</option>
-      </select>
+      <div class="input-group">
+        <i class="fa-solid fa-envelope"></i>
+        <input type="email" id="regEmail" placeholder="Email" required>
+      </div>
 
-      <button type="submit">Εγγραφή</button>
+      <div class="input-group">
+        <i class="fa-solid fa-lock"></i>
+        <input type="password" id="regPassword" placeholder="Password" required>
+      </div>
+
+      <div class="input-group">
+        <i class="fa-solid fa-users"></i>
+        <select id="regRole" required>
+          <option value="">Επίλεξε ρόλο</option>
+          <option value="cook">🍳 Μάγειρας</option>
+          <option value="consumer">🧍 Καταναλωτής</option>
+        </select>
+      </div>
+
+      <button type="submit">
+        <i class="fa-solid fa-check"></i>
+        Εγγραφή
+      </button>
     </form>
 
     <p>
@@ -61,7 +101,6 @@
 
 </main>
 
-<!-- TOASTR JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
