@@ -152,3 +152,7 @@ index.html (modal + meals)
 ✔ κουμπί "Ολοκλήρωση"
 
 chat: Web εφαρμογη Food Sharing
+
+
+
+ALTER TABLE requests ADD portions INT;
