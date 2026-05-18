@@ -7,16 +7,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// =====================
-// TEST
-// =====================
 app.get("/", (req, res) => {
   res.send("Server OK");
 });
 
-// =====================
 // LOGIN
-// =====================
 app.post("/api/login", (req, res) => {
   const { email, password } = req.body;
 
@@ -43,72 +38,88 @@ app.post("/api/login", (req, res) => {
   });
 });
 
-// =====================
 // REGISTER
-// =====================
 app.post("/api/register", (req, res) => {
   const { username, email, password, role } = req.body;
 
   const sql = `
-    INSERT INTO users (username, email, password, role)
-    VALUES (?, ?, ?, ?)
+    INSERT INTO users (username, email, password, role, points)
+    VALUES (?, ?, ?, ?, 5)
   `;
 
   db.query(sql, [username, email, password, role], (err) => {
     if (err) return res.status(500).json(err);
-
     res.json({ message: "registered" });
   });
 });
 
-// =====================
-// GET MEALS
-// =====================
+// GET MEALS - last 48 hours, including 0 portions
 app.get("/api/meals", (req, res) => {
-  db.query("SELECT * FROM meals WHERE portions > 0", (err, result) => {
-    if (err) return res.status(500).json(err);
+  const sql = `
+    SELECT 
+      meals.*,
+      users.username AS cook_name
+    FROM meals
+    JOIN users ON meals.user_id = users.id
+    WHERE meals.created_at >= NOW() - INTERVAL 48 HOUR
+    ORDER BY meals.created_at DESC
+  `;
 
+  db.query(sql, (err, result) => {
+    if (err) return res.status(500).json(err);
     res.json(result);
   });
 });
 
-// =====================
 // ADD MEAL
-// =====================
 app.post("/api/meals", (req, res) => {
-  const { user_id, title, description, portions, location, pickup_time, price } =
-    req.body;
+  const {
+    user_id,
+    title,
+    description,
+    portions,
+    location,
+    latitude,
+    longitude,
+    pickup_time,
+    price,
+  } = req.body;
 
   const sql = `
-    INSERT INTO meals (user_id, title, description, portions, location, pickup_time, price)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO meals 
+    (user_id, title, description, portions, location, latitude, longitude, pickup_time, price)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   db.query(
     sql,
-    [user_id, title, description, portions, location, pickup_time, price],
+    [
+      user_id,
+      title,
+      description,
+      portions,
+      location,
+      latitude,
+      longitude,
+      pickup_time,
+      price,
+    ],
     (err) => {
       if (err) return res.status(500).json(err);
-
       res.json({ message: "ok" });
     }
   );
 });
 
-// =====================
 // DELETE MEAL
-// =====================
 app.delete("/api/meals/:id", (req, res) => {
   db.query("DELETE FROM meals WHERE id = ?", [req.params.id], (err) => {
     if (err) return res.status(500).json(err);
-
     res.json({ message: "deleted" });
   });
 });
 
-// =====================
 // CREATE REQUEST
-// =====================
 app.post("/api/requests", (req, res) => {
   const { meal_id, consumer_id, portions, note } = req.body;
 
@@ -118,18 +129,12 @@ app.post("/api/requests", (req, res) => {
   `;
 
   db.query(sql, [meal_id, consumer_id, portions, note], (err) => {
-    if (err) {
-      console.log("SQL ERROR:", err);
-      return res.status(500).json(err);
-    }
-
+    if (err) return res.status(500).json(err);
     res.json({ message: "ok" });
   });
 });
 
-// =====================
 // GET REQUESTS FOR COOK
-// =====================
 app.get("/api/requests/:cook_id", (req, res) => {
   const cookId = req.params.cook_id;
 
@@ -148,18 +153,12 @@ app.get("/api/requests/:cook_id", (req, res) => {
   `;
 
   db.query(sql, [cookId], (err, result) => {
-    if (err) {
-      console.log("ERROR:", err);
-      return res.status(500).json(err);
-    }
-
+    if (err) return res.status(500).json(err);
     res.json(result);
   });
 });
 
-// =====================
 // ACCEPT REQUEST
-// =====================
 app.post("/api/requests/accept", (req, res) => {
   const { request_id, portions } = req.body;
 
@@ -173,8 +172,8 @@ app.post("/api/requests/accept", (req, res) => {
     const mealId = result[0].meal_id;
 
     db.query(
-      "UPDATE meals SET portions = portions - ? WHERE id = ?",
-      [portions, mealId],
+      "UPDATE meals SET portions = portions - ? WHERE id = ? AND portions >= ?",
+      [portions, mealId, portions],
       (err2) => {
         if (err2) return res.status(500).json(err2);
 
@@ -183,7 +182,6 @@ app.post("/api/requests/accept", (req, res) => {
           [request_id],
           (err3) => {
             if (err3) return res.status(500).json(err3);
-
             res.json({ message: "accepted" });
           }
         );
@@ -192,9 +190,7 @@ app.post("/api/requests/accept", (req, res) => {
   });
 });
 
-// =====================
 // REJECT REQUEST
-// =====================
 app.post("/api/requests/reject", (req, res) => {
   const { request_id } = req.body;
 
@@ -203,15 +199,11 @@ app.post("/api/requests/reject", (req, res) => {
     [request_id],
     (err) => {
       if (err) return res.status(500).json(err);
-
       res.json({ message: "rejected" });
     }
   );
 });
 
-// =====================
-// START SERVER
-// =====================
 app.listen(3000, () => {
   console.log("Server running on http://localhost:3000");
 });

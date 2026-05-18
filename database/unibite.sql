@@ -61,3 +61,26 @@ ALTER TABLE requests CHANGE user_id consumer_id INT;
 -- status update
 ALTER TABLE requests MODIFY status 
 ENUM('pending','accepted','completed') DEFAULT 'pending';
+
+
+-- 18/5/2026
+
+ALTER TABLE meals
+ADD latitude DECIMAL(10, 8) NULL,
+ADD longitude DECIMAL(11, 8) NULL;
+
+ALTER TABLE requests MODIFY status 
+ENUM('pending','accepted','rejected','completed') DEFAULT 'pending';
+
+-touta en eimai telia siouros an prepei se esas
+UPDATE meals 
+SET location = 'CEID',
+    latitude = 38.2885,
+    longitude = 21.7889
+WHERE id = 4;
+
+UPDATE meals 
+SET location = 'Βιβλιοθήκη Πανεπιστημίου',
+    latitude = 38.2897,
+    longitude = 21.7869
+WHERE id = 5;
