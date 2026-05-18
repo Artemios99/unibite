@@ -2,8 +2,12 @@
 <html lang="el">
 <head>
   <meta charset="UTF-8">
-  <title>UniBite</title>
+  <title>UniBite - Login</title>
+
   <link rel="stylesheet" href="style.css">
+
+  <!-- TOASTR CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 </head>
 <body>
 
@@ -14,24 +18,8 @@
 
 <main>
 
-  <section class="form-section">
-    <h2>Εγγραφή</h2>
-
-    <form id="registerForm">
-      <input type="text" id="regUsername" placeholder="Username" required>
-      <input type="email" id="regEmail" placeholder="Email" required>
-      <input type="password" id="regPassword" placeholder="Password" required>
-
-      <select id="regRole">
-        <option value="cook">🍳 Μάγειρας</option>
-        <option value="consumer">🧍 Καταναλωτής</option>
-      </select>
-
-      <button type="submit">Εγγραφή</button>
-    </form>
-  </section>
-
-  <section class="form-section">
+  <!-- LOGIN -->
+  <section id="loginSection" class="form-section">
     <h2>Σύνδεση</h2>
 
     <form id="loginForm">
@@ -40,9 +28,42 @@
 
       <button type="submit">Σύνδεση</button>
     </form>
+
+    <p>
+      Δεν έχεις λογαριασμό;
+      <button type="button" id="showRegisterBtn">Κάνε εγγραφή</button>
+    </p>
+  </section>
+
+  <!-- REGISTER -->
+  <section id="registerSection" class="form-section" style="display: none;">
+    <h2>Εγγραφή</h2>
+
+    <form id="registerForm">
+      <input type="text" id="regUsername" placeholder="Username" required>
+      <input type="email" id="regEmail" placeholder="Email" required>
+      <input type="password" id="regPassword" placeholder="Password" required>
+
+      <select id="regRole" required>
+        <option value="">Επίλεξε ρόλο</option>
+        <option value="cook">🍳 Μάγειρας</option>
+        <option value="consumer">🧍 Καταναλωτής</option>
+      </select>
+
+      <button type="submit">Εγγραφή</button>
+    </form>
+
+    <p>
+      Έχεις ήδη λογαριασμό;
+      <button type="button" id="showLoginBtn">Σύνδεση</button>
+    </p>
   </section>
 
 </main>
+
+<!-- TOASTR JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
 <script src="auth.js"></script>
 </body>

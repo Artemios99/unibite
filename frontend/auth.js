@@ -1,4 +1,16 @@
+// =====================
+// TOASTR SETTINGS
+// =====================
+toastr.options = {
+  closeButton: true,
+  progressBar: true,
+  positionClass: "toast-top-right",
+  timeOut: "2500",
+};
+
+// =====================
 // REGISTER
+// =====================
 document.getElementById("registerForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -20,14 +32,24 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
 
     const result = await res.json();
 
-    alert(result.message || result.error);
+    if (result.message) {
+      toastr.success("Η εγγραφή ολοκληρώθηκε με επιτυχία!");
+
+      document.getElementById("registerForm").reset();
+      document.getElementById("registerSection").style.display = "none";
+      document.getElementById("loginSection").style.display = "block";
+    } else {
+      toastr.error(result.error || "Αποτυχία εγγραφής");
+    }
   } catch (err) {
     console.error(err);
-    alert("Register error");
+    toastr.error("Σφάλμα κατά την εγγραφή");
   }
 });
 
+// =====================
 // LOGIN
+// =====================
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -49,15 +71,33 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
 
     if (result.user) {
       localStorage.setItem("user", JSON.stringify(result.user));
-      alert("Σύνδεση επιτυχής!");
 
-      // 🔥 ΣΙΓΟΥΡΟ REDIRECT
-      window.location.replace("index.html");
+      toastr.success("Σύνδεση επιτυχής!");
+
+      setTimeout(() => {
+        window.location.replace("index.html");
+      }, 1000);
     } else {
-      alert(result.error);
+      toastr.error(result.error || "Λάθος στοιχεία σύνδεσης");
     }
   } catch (err) {
     console.error(err);
-    alert("Login error");
+    toastr.error("Σφάλμα σύνδεσης");
   }
+});
+
+// =====================
+// SHOW / HIDE FORMS
+// =====================
+const loginSection = document.getElementById("loginSection");
+const registerSection = document.getElementById("registerSection");
+
+document.getElementById("showRegisterBtn").addEventListener("click", () => {
+  loginSection.style.display = "none";
+  registerSection.style.display = "block";
+});
+
+document.getElementById("showLoginBtn").addEventListener("click", () => {
+  registerSection.style.display = "none";
+  loginSection.style.display = "block";
 });
