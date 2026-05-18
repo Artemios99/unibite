@@ -84,3 +84,14 @@ SET location = 'Βιβλιοθήκη Πανεπιστημίου',
     latitude = 38.2897,
     longitude = 21.7869
 WHERE id = 5;
+
+
+
+------
+ALTER TABLE meals
+ADD COLUMN allergens TEXT;
+
+ALTER TABLE requests
+ADD COLUMN picked_up TINYINT DEFAULT 0;
+
+

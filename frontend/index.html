@@ -32,7 +32,21 @@
       <input type="text" id="title" placeholder="Τίτλος" required>
       <input type="text" id="description" placeholder="Περιγραφή" required>
       <input type="number" id="portions" placeholder="Μερίδες" min="0" required>
+<label>Αλλεργιογόνα:</label>
 
+<div class="allergens-grid">
+  <label><input type="checkbox" name="allergen" value="Γλουτένη"> Γλουτένη</label>
+  <label><input type="checkbox" name="allergen" value="Γάλα"> Γάλα</label>
+  <label><input type="checkbox" name="allergen" value="Αυγά"> Αυγά</label>
+
+  <label><input type="checkbox" name="allergen" value="Ξηροί καρποί"> Ξηροί καρποί</label>
+  <label><input type="checkbox" name="allergen" value="Σόγια"> Σόγια</label>
+  <label><input type="checkbox" name="allergen" value="Ψάρι"> Ψάρι</label>
+
+  <label><input type="checkbox" name="allergen" value="Οστρακοειδή"> Οστρακοειδή</label>
+  <label><input type="checkbox" name="allergen" value="Σουσάμι"> Σουσάμι</label>
+  <label><input type="checkbox" name="allergen" value="Μουστάρδα"> Μουστάρδα</label>
+</div>
       <input 
         type="text" 
         id="location" 
@@ -71,17 +85,17 @@
     </div>
   </section>
 
-  <section class="consumer-layout">
-    <div class="form-section">
-      <h2>Λίστα αγγελιών</h2>
-      <div id="mealsList"></div>
-    </div>
+<section class="meals-section form-section">
+  <h2>Λίστα αγγελιών</h2>
+  <div id="mealsList"></div>
+</section>
 
-    <div class="form-section">
-      <h2>Χάρτης</h2>
-      <div id="map"></div>
-    </div>
-  </section>
+<section class="consumer-layout">
+  <div class="form-section">
+    <h2>Χάρτης</h2>
+    <div id="map"></div>
+  </div>
+</section>
 
   <section id="requestsSection" class="form-section">
     <h2>Αιτήματα</h2>

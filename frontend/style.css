@@ -461,3 +461,41 @@ p {
   color: #666;
   margin-bottom: 5px;
 }
+
+
+.allergens-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 10px 0 15px;
+}
+
+.allergens-grid label {
+  background: #fff;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.allergens-grid input {
+  margin-right: 6px;
+}
+
+.requests-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+}
+
+.requests-column {
+  background: #fff;
+  padding: 15px;
+  border-radius: 15px;
+}
+
+.picked-label {
+  color: green;
+  font-weight: bold;
+}
