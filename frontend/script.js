@@ -1,9 +1,9 @@
 const mealForm = document.getElementById("mealForm");
 const mealsList = document.getElementById("mealsList");
 const requestsList = document.getElementById("requestsList");
+const ratingsList = document.getElementById("ratingsList");
 
 const loggedUser = JSON.parse(localStorage.getItem("user"));
-let editMealId = null;
 
 if (!loggedUser) {
   window.location.href = "login.html";
@@ -21,11 +21,11 @@ if (loggedUser.role !== "consumer") {
 }
 
 if (loggedUser.role === "cook") {
-  const consumerLayout = document.querySelector(".consumer-layout");
+  document.querySelector(".consumer-layout").style.display = "none";
+}
 
-  if (consumerLayout) {
-    consumerLayout.style.display = "none";
-  }
+if (loggedUser.role !== "consumer") {
+  document.getElementById("ratingsSection").style.display = "none";
 }
 
 let selectedMealId = null;
@@ -60,7 +60,7 @@ function initMap() {
 }
 
 // =====================
-// PICK MAP FOR COOK
+// PICK MAP
 // =====================
 function initPickMap() {
   const pickMapDiv = document.getElementById("pickMap");
@@ -96,7 +96,7 @@ function initPickMap() {
 }
 
 // =====================
-// SEARCH PICKUP LOCATION
+// SEARCH LOCATION
 // =====================
 async function searchPickupLocation() {
   const address = document.getElementById("location").value.trim();
@@ -126,7 +126,7 @@ async function searchPickupLocation() {
     draggable: true,
   }).addTo(pickMap);
 
-  pickMarker.bindPopup("Διόρθωσε το σημείο αν χρειάζεται").openPopup();
+  pickMarker.bindPopup("Διόρθωσε το σημείο").openPopup();
 
   pickMarker.on("dragend", function (e) {
     const position = e.target.getLatLng();
@@ -156,7 +156,7 @@ async function getCoordinates(address) {
       lng: Number(data[0].lon),
     };
   } catch (err) {
-    console.log("Geocoding error:", err);
+    console.log(err);
     return null;
   }
 }
@@ -189,15 +189,7 @@ async function loadMeals() {
   const res = await fetch("http://localhost:3000/api/meals");
   allMeals = await res.json();
 
-  if (loggedUser.role === "cook") {
-    const cookMeals = allMeals.filter(
-      (meal) => Number(meal.user_id) === Number(loggedUser.id)
-    );
-
-    renderMeals(cookMeals);
-  } else {
-    renderMeals(allMeals);
-  }
+  renderMeals(allMeals);
 
   if (loggedUser.role === "consumer") {
     renderMap(allMeals);
@@ -211,45 +203,40 @@ function renderMeals(meals) {
   mealsList.innerHTML = "";
 
   if (meals.length === 0) {
-    mealsList.innerHTML = "<p>Δεν υπάρχουν αγγελίες τελευταίων 48 ωρών.</p>";
+    mealsList.innerHTML = "<p>Δεν υπάρχουν αγγελίες.</p>";
     return;
   }
 
   meals.forEach((meal) => {
     const div = document.createElement("div");
     const isEmpty = Number(meal.portions) === 0;
-    const allergens = parseAllergens(meal.allergens);
 
     div.className = isEmpty ? "meal-card empty-meal" : "meal-card";
 
     div.innerHTML = `
       <h3>${meal.title}</h3>
+
       <p>${meal.description}</p>
-      <p><b>Μάγειρας:</b> ${meal.cook_name || "Άγνωστος"}</p>
+
+      <p><b>Μάγειρας:</b> ${meal.cook_name}</p>
+
       <p><b>Μερίδες:</b> ${meal.portions}</p>
-      <p><b>Τοποθεσία:</b> ${meal.location || "Δεν δηλώθηκε"}</p>
-      <p><b>Παραλαβή:</b> ${formatDate(meal.pickup_time)}</p>
+
+      <p><b>Τοποθεσία:</b> ${meal.location}</p>
+
       <p><b>Τιμή:</b> ${meal.price}€</p>
 
-      <details class="allergens-dropdown">
-        <summary>Δες αλλεργιογόνα</summary>
-        <p>
-          ${
-            allergens.length > 0
-              ? allergens.join(", ")
-              : "Δεν δηλώθηκαν αλλεργιογόνα"
-          }
-        </p>
-      </details>
+      ${
+        meal.allergens
+          ? `<p><b>Αλλεργιογόνα:</b> ${meal.allergens}</p>`
+          : ""
+      }
 
       ${isEmpty ? `<p class="empty-label">Εξαντλήθηκε</p>` : ""}
 
       ${
         Number(meal.user_id) === Number(loggedUser.id)
-          ? `
-            <button onclick="editMeal(${meal.id})">Επεξεργασία</button>
-            <button onclick="deleteMeal(${meal.id})">Διαγραφή</button>
-          `
+          ? `<button onclick="deleteMeal(${meal.id})">Διαγραφή</button>`
           : ""
       }
 
@@ -278,17 +265,11 @@ function renderMap(meals) {
   meals.forEach((meal) => {
     if (!meal.latitude || !meal.longitude) return;
 
-    const isEmpty = Number(meal.portions) === 0;
-
-    const marker = L.marker([meal.latitude, meal.longitude], {
-      title: meal.title,
-    }).addTo(map);
+    const marker = L.marker([meal.latitude, meal.longitude]).addTo(map);
 
     marker.bindPopup(`
       <b>${meal.title}</b><br>
-      ${meal.location || ""}<br>
-      Μερίδες: ${meal.portions}<br>
-      ${isEmpty ? "<b>Εξαντλήθηκε</b>" : ""}
+      ${meal.location}
     `);
 
     markers.push(marker);
@@ -301,25 +282,21 @@ function renderMap(meals) {
 }
 
 // =====================
-// SORT BY DISTANCE
+// SORT DISTANCE
 // =====================
 async function sortByDistance() {
   const address = document.getElementById("userLocation").value.trim();
 
   if (!address) {
-    alert("Γράψε πρώτα τη διεύθυνσή σου.");
+    alert("Γράψε τη διεύθυνσή σου.");
     return;
   }
 
   const coords = await getCoordinates(address);
 
   if (!coords) {
-    alert("Δεν βρέθηκε η διεύθυνση. Δοκίμασε π.χ. CEID, Πάτρα.");
+    alert("Δεν βρέθηκε η διεύθυνση.");
     return;
-  }
-
-  if (userMarker) {
-    map.removeLayer(userMarker);
   }
 
   const userIcon = L.icon({
@@ -329,9 +306,11 @@ async function sortByDistance() {
       "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
     iconSize: [25, 41],
     iconAnchor: [12, 41],
-    popupAnchor: [1, -34],
-    shadowSize: [41, 41],
   });
+
+  if (userMarker) {
+    map.removeLayer(userMarker);
+  }
 
   userMarker = L.marker([coords.lat, coords.lng], {
     icon: userIcon,
@@ -360,211 +339,72 @@ async function sortByDistance() {
     return distA - distB;
   });
 
-  renderMealsWithDistance(sorted, coords);
+  renderMeals(sorted);
   renderMap(sorted);
 
   map.setView([coords.lat, coords.lng], 14);
 }
 
 // =====================
-// RENDER MEALS WITH DISTANCE
-// =====================
-function renderMealsWithDistance(meals, coords) {
-  mealsList.innerHTML = "";
-
-  meals.forEach((meal) => {
-    const div = document.createElement("div");
-    const isEmpty = Number(meal.portions) === 0;
-    const allergens = parseAllergens(meal.allergens);
-
-    let distanceText = "Άγνωστη απόσταση";
-
-    if (meal.latitude && meal.longitude) {
-      const distance = getDistanceKm(
-        coords.lat,
-        coords.lng,
-        Number(meal.latitude),
-        Number(meal.longitude)
-      );
-
-      distanceText = distance.toFixed(2) + " km";
-    }
-
-    div.className = isEmpty ? "meal-card empty-meal" : "meal-card";
-
-    div.innerHTML = `
-      <h3>${meal.title}</h3>
-      <p>${meal.description}</p>
-      <p><b>Μάγειρας:</b> ${meal.cook_name || "Άγνωστος"}</p>
-      <p><b>Μερίδες:</b> ${meal.portions}</p>
-      <p><b>Τοποθεσία:</b> ${meal.location || "Δεν δηλώθηκε"}</p>
-      <p><b>Απόσταση:</b> ${distanceText}</p>
-      <p><b>Παραλαβή:</b> ${formatDate(meal.pickup_time)}</p>
-      <p><b>Τιμή:</b> ${meal.price}€</p>
-
-      <details class="allergens-dropdown">
-        <summary>Δες αλλεργιογόνα</summary>
-        <p>
-          ${
-            allergens.length > 0
-              ? allergens.join(", ")
-              : "Δεν δηλώθηκαν αλλεργιογόνα"
-          }
-        </p>
-      </details>
-
-      ${isEmpty ? `<p class="empty-label">Εξαντλήθηκε</p>` : ""}
-
-      ${
-        Number(meal.user_id) === Number(loggedUser.id)
-          ? `
-            <button onclick="editMeal(${meal.id})">Επεξεργασία</button>
-            <button onclick="deleteMeal(${meal.id})">Διαγραφή</button>
-          `
-          : ""
-      }
-
-      ${
-        loggedUser.role === "consumer" && !isEmpty
-          ? `<button onclick="openRequest(${meal.id}, '${escapeText(
-              meal.title
-            )}', ${meal.portions})">Ζήτηση</button>`
-          : ""
-      }
-    `;
-
-    mealsList.appendChild(div);
-  });
-}
-
-// =====================
-// ADD / UPDATE MEAL
+// ADD MEAL
 // =====================
 mealForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const selectedAllergens = Array.from(
-    document.querySelectorAll('input[name="allergen"]:checked')
-  ).map((checkbox) => checkbox.value);
+  if (!selectedLat || !selectedLng) {
+    alert("Επίλεξε σημείο στον χάρτη.");
+    return;
+  }
+
+  const allergens = [];
+
+  document
+    .querySelectorAll('input[name="allergen"]:checked')
+    .forEach((checkbox) => {
+      allergens.push(checkbox.value);
+    });
 
   const data = {
     user_id: loggedUser.id,
-    title: document.getElementById("title").value,
-    description: document.getElementById("description").value,
-    portions: document.getElementById("portions").value,
-    location: document.getElementById("location").value,
-    pickup_time: document.getElementById("pickup_time").value,
-    price: document.getElementById("price").value,
+    title: title.value,
+    description: description.value,
+    portions: portions.value,
+    location: location.value,
     latitude: selectedLat,
     longitude: selectedLng,
-    allergens: JSON.stringify(selectedAllergens),
+    pickup_time: pickup_time.value,
+    price: price.value,
+    allergens: allergens.join(", "),
   };
 
-  if (editMealId) {
-    await fetch(`http://localhost:3000/api/meals/${editMealId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-
-    alert("Το φαγητό ενημερώθηκε!");
-  } else {
-    await fetch("http://localhost:3000/api/meals", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
-
-    alert("Το φαγητό προστέθηκε!");
-  }
+  await fetch("http://localhost:3000/api/meals", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
 
   mealForm.reset();
 
-  clearAllergenCheckboxes();
+  if (pickMarker) {
+    pickMap.removeLayer(pickMarker);
+    pickMarker = null;
+  }
 
-  editMealId = null;
   selectedLat = null;
   selectedLng = null;
-
-  document.querySelector("#mealForm button[type='submit']").innerText =
-    "Προσθήκη";
 
   loadMeals();
 });
 
 // =====================
-// EDIT MEAL
+// DELETE
 // =====================
-function editMeal(id) {
-  const meal = allMeals.find((m) => Number(m.id) === Number(id));
-
-  if (!meal) {
-    alert("Δεν βρέθηκε το φαγητό.");
-    return;
-  }
-
-  editMealId = id;
-
-  document.getElementById("title").value = meal.title;
-  document.getElementById("description").value = meal.description;
-  document.getElementById("portions").value = meal.portions;
-  document.getElementById("location").value = meal.location || "";
-
-  document.getElementById("pickup_time").value = meal.pickup_time
-    ? meal.pickup_time.slice(0, 16)
-    : "";
-
-  document.getElementById("price").value = meal.price;
-
-  selectedLat = meal.latitude;
-  selectedLng = meal.longitude;
-
-  clearAllergenCheckboxes();
-
-  const allergens = parseAllergens(meal.allergens);
-
-  document.querySelectorAll('input[name="allergen"]').forEach((checkbox) => {
-    checkbox.checked = allergens.includes(checkbox.value);
-  });
-
-  document.querySelector("#mealForm button[type='submit']").innerText =
-    "Ενημέρωση φαγητού";
-
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth",
-  });
-}
-
-// =====================
-// DELETE MEAL
-// =====================
-
 async function deleteMeal(id) {
-
-  const confirmDelete = confirm(
-    "Θέλεις σίγουρα να διαγράψεις το φαγητό;"
-  );
-
-  if (!confirmDelete) return;
-
-  const res = await fetch(
-    `http://localhost:3000/api/meals/${id}`,
-    {
-      method: "DELETE",
-    }
-  );
-
-  if (!res.ok) {
-    alert("Σφάλμα στη διαγραφή");
-    return;
-  }
-
-  alert("Το φαγητό διαγράφηκε!");
+  await fetch(`http://localhost:3000/api/meals/${id}`, {
+    method: "DELETE",
+  });
 
   loadMeals();
 }
@@ -576,19 +416,20 @@ function openRequest(id, title, portions) {
   selectedMealId = id;
   selectedMealPortions = portions;
 
-  document.getElementById("requestModal").style.display = "block";
-  document.getElementById("mealTitle").innerText = title;
+  requestModal.style.display = "block";
+  mealTitle.innerText = title;
 
-  const portionSelect = document.getElementById("portionSelect");
   portionSelect.innerHTML = "";
 
-  for (let i = 1; i <= selectedMealPortions; i++) {
-    portionSelect.innerHTML += `<option value="${i}">${i}</option>`;
+  for (let i = 1; i <= portions; i++) {
+    portionSelect.innerHTML += `
+      <option value="${i}">${i}</option>
+    `;
   }
 }
 
 function closeModal() {
-  document.getElementById("requestModal").style.display = "none";
+  requestModal.style.display = "none";
 }
 
 // =====================
@@ -598,8 +439,8 @@ async function submitRequest() {
   const data = {
     meal_id: selectedMealId,
     consumer_id: loggedUser.id,
-    portions: document.getElementById("portionSelect").value,
-    note: document.getElementById("requestNote").value,
+    portions: portionSelect.value,
+    note: requestNote.value,
   };
 
   const res = await fetch("http://localhost:3000/api/requests", {
@@ -611,119 +452,163 @@ async function submitRequest() {
   });
 
   if (!res.ok) {
-    alert("Σφάλμα στο request");
+    alert("Σφάλμα.");
     return;
   }
 
   alert("Το αίτημα στάλθηκε!");
+
   closeModal();
+  loadRequests();
 }
 
 // =====================
-// LOAD REQUESTS FOR COOK
+// LOAD REQUESTS
 // =====================
 async function loadRequests() {
-  if (loggedUser.role !== "cook") return;
+  requestsList.innerHTML = "";
 
-  const res = await fetch(`http://localhost:3000/api/requests/${loggedUser.id}`);
-  const data = await res.json();
+  // COOK REQUESTS
+  if (loggedUser.role === "cook") {
+    const res = await fetch(
+      `http://localhost:3000/api/requests/${loggedUser.id}`
+    );
 
-  const pendingRequests = data.filter((r) => r.status === "pending");
-  const approvedRequests = data.filter((r) => r.status === "accepted");
+    const data = await res.json();
 
-  requestsList.innerHTML = `
-    <div class="requests-columns">
+    if (data.length === 0) {
+      requestsList.innerHTML = "<p>Δεν υπάρχουν αιτήματα.</p>";
+      return;
+    }
 
-      <div class="requests-column">
-        <h3>Νέα αιτήματα</h3>
-        <div id="pendingRequestsList"></div>
-      </div>
+    data.forEach((r) => {
+      requestsList.innerHTML += `
+        <div class="request-card">
 
-      <div class="requests-column">
-        <h3>Εγκεκριμένα αιτήματα</h3>
-        <div id="approvedRequestsList"></div>
-      </div>
+          <p>
+            <b>${r.username}</b> ζητά 
+            <b>${r.portions}</b> μερίδες από 
+            "<b>${r.title}</b>"
+          </p>
 
-    </div>
-  `;
+          <p>${r.note || ""}</p>
 
-  const pendingList = document.getElementById("pendingRequestsList");
-  const approvedList = document.getElementById("approvedRequestsList");
+          <p><b>Status:</b> ${getStatusLabel(r.status)}</p>
 
-  if (pendingRequests.length === 0) {
-    pendingList.innerHTML = "<p>Δεν υπάρχουν νέα αιτήματα.</p>";
+          ${
+            r.status === "pending"
+              ? `
+              <button onclick="acceptRequest(${r.id}, ${r.portions})">
+                Αποδοχή
+              </button>
+
+              <button onclick="rejectRequest(${r.id})">
+                Απόρριψη
+              </button>
+            `
+              : ""
+          }
+
+          ${
+            r.status === "accepted" && r.picked_up == null
+              ? `
+              <button onclick="pickupRequest(${r.id})">
+                Παραλήφθηκε
+              </button>
+
+              <button onclick="notPickupRequest(${r.id})">
+                Δεν παραλήφθηκε
+              </button>
+            `
+              : ""
+          }
+
+          ${
+            r.picked_up !== null && Number(r.picked_up) === 1
+              ? `<p class="picked-label">✅ Παραλήφθηκε</p>`
+              : ""
+          }
+
+          ${
+            r.picked_up !== null && Number(r.picked_up) === 0
+              ? `<p class="rejected-label">❌ Δεν παραλήφθηκε</p>`
+              : ""
+          }
+
+        </div>
+      `;
+    });
+
+    return;
   }
 
-  if (approvedRequests.length === 0) {
-    approvedList.innerHTML = "<p>Δεν υπάρχουν εγκεκριμένα αιτήματα.</p>";
+  // CONSUMER REQUESTS
+  if (loggedUser.role === "consumer") {
+    const res = await fetch(
+      `http://localhost:3000/api/myrequests/${loggedUser.id}`
+    );
+
+    const data = await res.json();
+
+    if (data.length === 0) {
+      requestsList.innerHTML = "<p>Δεν έχεις κάνει ακόμα αιτήματα.</p>";
+      return;
+    }
+
+    data.forEach((r) => {
+      requestsList.innerHTML += `
+        <div class="request-card">
+
+          <h3>${r.title}</h3>
+
+          <p>${r.description || ""}</p>
+
+          <p><b>Μάγειρας:</b> ${r.cook_name}</p>
+
+          <p><b>Μερίδες που ζήτησες:</b> ${r.portions}</p>
+
+          <p><b>Τοποθεσία:</b> ${r.location || "Δεν δηλώθηκε"}</p>
+
+          <p><b>Ώρα παραλαβής:</b> ${formatDate(r.pickup_time)}</p>
+
+          <p><b>Τιμή:</b> ${r.price}€</p>
+
+          <p>
+            <b>Κατάσταση:</b>
+            <span class="status-badge ${r.status}">
+              ${getStatusLabel(r.status)}
+            </span>
+          </p>
+
+          ${
+            r.picked_up !== null && Number(r.picked_up) === 1
+              ? `<p class="picked-label">✅ Ο cook σημείωσε ότι παραλήφθηκε.</p>`
+              : ""
+          }
+
+          ${
+            r.picked_up !== null && Number(r.picked_up) === 0
+              ? `<p class="rejected-label">❌ Ο cook σημείωσε ότι δεν παραλήφθηκε.</p>`
+              : ""
+          }
+
+          ${
+            r.status === "completed"
+              ? `<p class="completed-label">⭐ Ολοκληρώθηκε με αξιολόγηση.</p>`
+              : ""
+          }
+
+        </div>
+      `;
+    });
   }
-
-  pendingRequests.forEach((r) => {
-    pendingList.innerHTML += `
-      <div class="request-card">
-        <p>
-          <b>${r.username}</b> ζητά 
-          <b>${r.portions}</b> μερίδες από 
-          "<b>${r.title}</b>"
-        </p>
-
-        <p>${r.note || ""}</p>
-
-        <button onclick="acceptRequest(${r.id}, ${r.portions})">
-          Accept
-        </button>
-
-        <button onclick="rejectRequest(${r.id})">
-          Reject
-        </button>
-      </div>
-    `;
-  });
-
-  approvedRequests.forEach((r) => {
-    approvedList.innerHTML += `
-      <div class="request-card">
-        <p>
-          <b>${r.username}</b> έχει εγκριθεί για 
-          <b>${r.portions}</b> μερίδες από 
-          "<b>${r.title}</b>"
-        </p>
-
-        <p>${r.note || ""}</p>
-
-  ${
-  r.picked_up === null
-    ? `
-      <button onclick="pickupRequest(${r.id})">
-        Παραλήφθηκε
-      </button>
-
-      <button onclick="notPickupRequest(${r.id})">
-        Δεν παραλήφθηκε
-      </button>
-    `
-    : Number(r.picked_up) === 1
-    ? `
-      <p class="picked-label">
-        ✅ Παραλήφθηκε
-      </p>
-    `
-    : `
-      <p class="rejected-label">
-        ❌ Δεν παραλήφθηκε
-      </p>
-    `
-}
-      </div>
-    `;
-  });
 }
 
 // =====================
 // ACCEPT
 // =====================
 async function acceptRequest(id, portions) {
-  const res = await fetch("http://localhost:3000/api/requests/accept", {
+  await fetch("http://localhost:3000/api/requests/accept", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -734,15 +619,8 @@ async function acceptRequest(id, portions) {
     }),
   });
 
-  if (!res.ok) {
-    alert("Δεν υπάρχουν αρκετές μερίδες ή έγινε σφάλμα.");
-    return;
-  }
-
-  alert("Το αίτημα εγκρίθηκε!");
-
-  await loadMeals();
-  await loadRequests();
+  loadMeals();
+  loadRequests();
 }
 
 // =====================
@@ -759,15 +637,14 @@ async function rejectRequest(id) {
     }),
   });
 
-  alert("Απόρριψη!");
   loadRequests();
 }
 
 // =====================
-// PICKUP REQUEST
+// PICKUP
 // =====================
 async function pickupRequest(id) {
-  const res = await fetch("http://localhost:3000/api/requests/pickup", {
+  await fetch("http://localhost:3000/api/requests/pickup", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -777,41 +654,124 @@ async function pickupRequest(id) {
     }),
   });
 
-  if (!res.ok) {
-    alert("Σφάλμα στην παραλαβή");
-    return;
-  }
-
-  alert("Η παραλαβή ολοκληρώθηκε!");
   loadRequests();
 }
+
 // =====================
-// NOT PICKED UP REQUEST
+// NOT PICKUP
 // =====================
 async function notPickupRequest(id) {
+  await fetch("http://localhost:3000/api/requests/not-pickup", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      request_id: id,
+    }),
+  });
+
+  loadRequests();
+}
+
+// =====================
+// LOAD RATINGS
+// =====================
+async function loadPendingRatings() {
+  if (loggedUser.role !== "consumer") return;
+
+  await fetch(`http://localhost:3000/api/ratings/check-expired/${loggedUser.id}`, {
+    method: "POST",
+  });
 
   const res = await fetch(
-    "http://localhost:3000/api/requests/not-pickup",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        request_id: id,
-      }),
-    }
+    `http://localhost:3000/api/ratings/pending/${loggedUser.id}`
   );
 
-  if (!res.ok) {
-    alert("Σφάλμα");
+  const data = await res.json();
+
+  ratingsList.innerHTML = "";
+
+  if (data.length === 0) {
+    ratingsList.innerHTML = "<p>Δεν υπάρχουν αξιολογήσεις.</p>";
     return;
   }
 
-  alert("Σημειώθηκε ως μη παραληφθέν");
+  data.forEach((item) => {
+    const hoursPassed = Number(item.hours_passed);
+    const hoursLeft = 48 - hoursPassed;
 
-  await loadRequests();
+    let warning = "";
+
+    if (hoursLeft > 0) {
+      warning = `
+        <p class="rating-warning">
+          ⚠️ Έχεις περίπου ${hoursLeft} ώρες για να αξιολογήσεις.
+          Αν δεν αξιολογήσεις μέσα σε 48 ώρες από την παραλαβή, θα αφαιρεθεί 1 πόντος.
+        </p>
+      `;
+    } else {
+      warning = `
+        <p class="rating-danger">
+          Η προθεσμία των 48 ωρών πέρασε. Αν δεν έχει αφαιρεθεί ήδη, θα αφαιρεθεί 1 πόντος.
+        </p>
+      `;
+    }
+
+    ratingsList.innerHTML += `
+      <div class="request-card">
+        <h3>${item.title}</h3>
+
+        <p>${item.description || ""}</p>
+
+        <p><b>Μάγειρας:</b> ${item.cook_name}</p>
+
+        ${warning}
+
+        <div class="rating-box">
+          <p><b>Επίλεξε βαθμολογία:</b></p>
+
+          <div class="stars">
+            <button onclick="submitRating(${item.request_id}, ${item.meal_id}, 1)">★<span>1</span></button>
+            <button onclick="submitRating(${item.request_id}, ${item.meal_id}, 2)">★<span>2</span></button>
+            <button onclick="submitRating(${item.request_id}, ${item.meal_id}, 3)">★<span>3</span></button>
+            <button onclick="submitRating(${item.request_id}, ${item.meal_id}, 4)">★<span>4</span></button>
+            <button onclick="submitRating(${item.request_id}, ${item.meal_id}, 5)">★<span>5</span></button>
+          </div>
+        </div>
+      </div>
+    `;
+  });
 }
+
+// =====================
+// SUBMIT RATING
+// =====================
+async function submitRating(requestId, mealId, rating) {
+  const res = await fetch("http://localhost:3000/api/ratings", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      request_id: requestId,
+      meal_id: mealId,
+      user_id: loggedUser.id,
+      rating: rating,
+    }),
+  });
+
+  if (!res.ok) {
+    alert("Σφάλμα.");
+    return;
+  }
+
+  alert("Η αξιολόγηση καταχωρήθηκε!");
+
+  loadPendingRatings();
+  loadRequests();
+}
+
 // =====================
 // HELPERS
 // =====================
@@ -824,24 +784,12 @@ function escapeText(text) {
   return text.replace(/'/g, "\\'");
 }
 
-function parseAllergens(allergens) {
-  if (!allergens) return [];
-
-  if (Array.isArray(allergens)) {
-    return allergens;
-  }
-
-  try {
-    return JSON.parse(allergens);
-  } catch (err) {
-    return [];
-  }
-}
-
-function clearAllergenCheckboxes() {
-  document.querySelectorAll('input[name="allergen"]').forEach((checkbox) => {
-    checkbox.checked = false;
-  });
+function getStatusLabel(status) {
+  if (status === "pending") return "Σε αναμονή";
+  if (status === "accepted") return "Εγκρίθηκε";
+  if (status === "rejected") return "Απορρίφθηκε";
+  if (status === "completed") return "Ολοκληρώθηκε";
+  return status;
 }
 
 // =====================
@@ -852,7 +800,29 @@ function logout() {
   window.location.href = "login.html";
 }
 
+// =====================
+// TOGGLE REQUESTS
+// =====================
+function toggleRequests() {
+  const list = document.getElementById("requestsList");
+  const btn = document.getElementById("toggleRequestsBtn");
+
+  if (list.style.display === "none") {
+    list.style.display = "block";
+    btn.innerText = "❌ Κλείσιμο";
+  } else {
+    list.style.display = "none";
+    btn.innerText = "📦 Τα αιτήματά μου";
+  }
+}
+
 initMap();
 initPickMap();
+
 loadMeals();
 loadRequests();
+loadPendingRatings();
+
+if (loggedUser.role === "consumer") {
+  setInterval(loadPendingRatings, 5000);
+}

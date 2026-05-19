@@ -17,6 +17,7 @@
 
 <header>
   <h1>🍽️ UniBite</h1>
+
   <div>
     <span id="userInfo"></span>
     <button onclick="logout()">Logout</button>
@@ -25,32 +26,38 @@
 
 <main>
 
+  <!-- COOK -->
   <section id="addMealSection" class="form-section">
     <h2>Πρόσθεσε φαγητό</h2>
 
     <form id="mealForm">
+
       <input type="text" id="title" placeholder="Τίτλος" required>
+
       <input type="text" id="description" placeholder="Περιγραφή" required>
+
       <input type="number" id="portions" placeholder="Μερίδες" min="0" required>
-<label>Αλλεργιογόνα:</label>
 
-<div class="allergens-grid">
-  <label><input type="checkbox" name="allergen" value="Γλουτένη"> Γλουτένη</label>
-  <label><input type="checkbox" name="allergen" value="Γάλα"> Γάλα</label>
-  <label><input type="checkbox" name="allergen" value="Αυγά"> Αυγά</label>
+      <label>Αλλεργιογόνα:</label>
 
-  <label><input type="checkbox" name="allergen" value="Ξηροί καρποί"> Ξηροί καρποί</label>
-  <label><input type="checkbox" name="allergen" value="Σόγια"> Σόγια</label>
-  <label><input type="checkbox" name="allergen" value="Ψάρι"> Ψάρι</label>
+      <div class="allergens-grid">
+        <label><input type="checkbox" name="allergen" value="Γλουτένη"> Γλουτένη</label>
+        <label><input type="checkbox" name="allergen" value="Γάλα"> Γάλα</label>
+        <label><input type="checkbox" name="allergen" value="Αυγά"> Αυγά</label>
 
-  <label><input type="checkbox" name="allergen" value="Οστρακοειδή"> Οστρακοειδή</label>
-  <label><input type="checkbox" name="allergen" value="Σουσάμι"> Σουσάμι</label>
-  <label><input type="checkbox" name="allergen" value="Μουστάρδα"> Μουστάρδα</label>
-</div>
-      <input 
-        type="text" 
-        id="location" 
-        placeholder="Διεύθυνση / Τοποθεσία π.χ. CEID, Πάτρα" 
+        <label><input type="checkbox" name="allergen" value="Ξηροί καρποί"> Ξηροί καρποί</label>
+        <label><input type="checkbox" name="allergen" value="Σόγια"> Σόγια</label>
+        <label><input type="checkbox" name="allergen" value="Ψάρι"> Ψάρι</label>
+
+        <label><input type="checkbox" name="allergen" value="Οστρακοειδή"> Οστρακοειδή</label>
+        <label><input type="checkbox" name="allergen" value="Σουσάμι"> Σουσάμι</label>
+        <label><input type="checkbox" name="allergen" value="Μουστάρδα"> Μουστάρδα</label>
+      </div>
+
+      <input
+        type="text"
+        id="location"
+        placeholder="Διεύθυνση / Τοποθεσία"
         required
       >
 
@@ -59,18 +66,21 @@
       </button>
 
       <p class="map-help">
-        Πάτα στον χάρτη ή σύρε το marker για να διορθώσεις το ακριβές σημείο παραλαβής.
+        Πάτα στον χάρτη ή σύρε το marker.
       </p>
 
       <div id="pickMap"></div>
 
       <input type="datetime-local" id="pickup_time" required>
+
       <input type="number" id="price" placeholder="Τιμή (€)" min="0" step="0.01" required>
 
       <button type="submit">Προσθήκη</button>
+
     </form>
   </section>
 
+  <!-- CONSUMER -->
   <section id="consumerTools" class="form-section">
     <h2>Αγγελίες φαγητού</h2>
 
@@ -78,39 +88,60 @@
       <input
         type="text"
         id="userLocation"
-        placeholder="Γράψε τη διεύθυνσή σου"
+        placeholder="Η τοποθεσία μου"
       >
 
-      <button onclick="sortByDistance()">Ταξινόμηση κοντινότερων</button>
+      <button onclick="sortByDistance()">
+        Ταξινόμηση κοντινότερων
+      </button>
     </div>
   </section>
 
-<section class="meals-section form-section">
-  <h2>Λίστα αγγελιών</h2>
-  <div id="mealsList"></div>
-</section>
+  <!-- LIST -->
+  <section class="meals-section form-section">
+    <h2>Λίστα αγγελιών</h2>
+    <div id="mealsList"></div>
+  </section>
 
-<section class="consumer-layout">
-  <div class="form-section">
-    <h2>Χάρτης</h2>
-    <div id="map"></div>
-  </div>
-</section>
+  <!-- MAP -->
+  <section class="consumer-layout">
+    <div class="form-section">
+      <h2>Χάρτης</h2>
+      <div id="map"></div>
+    </div>
+  </section>
 
-  <section id="requestsSection" class="form-section">
+  <!-- REQUESTS -->
+<section id="requestsSection" class="form-section">
+
+  <div class="requests-header">
     <h2>Αιτήματα</h2>
-    <div id="requestsList"></div>
+
+    <button id="toggleRequestsBtn" onclick="toggleRequests()">
+      📦 Τα αιτήματά μου
+    </button>
+  </div>
+
+  <div id="requestsList" style="display:none;"></div>
+
+</section>
+
+  <!-- RATINGS -->
+  <section id="ratingsSection" class="form-section">
+    <h2>Αξιολογήσεις</h2>
+    <div id="ratingsList"></div>
   </section>
 
 </main>
 
+<!-- MODAL -->
 <div id="requestModal" class="modal">
   <div class="modal-content">
 
     <h2 id="mealTitle"></h2>
 
     <label>Σημείωση:</label>
-    <input type="text" id="requestNote" placeholder="π.χ. χωρίς αλάτι">
+    <input type="text" id="requestNote">
 
     <label>Μερίδες:</label>
     <select id="portionSelect"></select>
@@ -118,15 +149,22 @@
     <br><br>
 
     <div style="display:flex; gap:10px; justify-content:center;">
-      <button onclick="closeModal()" style="background:gray;">Back</button>
-      <button onclick="submitRequest()">Confirm</button>
+      <button onclick="closeModal()" style="background:gray;">
+        Back
+      </button>
+
+      <button onclick="submitRequest()">
+        Confirm
+      </button>
     </div>
 
   </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <script src="https://unpkg.com/leaflet.fullscreen@1.6.0/Control.FullScreen.js"></script>
+
 <script src="script.js"></script>
 
 </body>

@@ -102,3 +102,19 @@ MODIFY picked_up TINYINT NULL DEFAULT NULL;
 UPDATE requests
 SET picked_up = NULL
 WHERE status = 'accepted' AND picked_up = 0;
+
+-----------------
+
+ALTER TABLE ratings
+ADD COLUMN request_id INT NULL;
+
+ALTER TABLE ratings
+ADD FOREIGN KEY (request_id) REFERENCES requests(id);
+
+ALTER TABLE requests
+ADD COLUMN picked_up_at DATETIME NULL,
+ADD COLUMN rating_penalty_applied TINYINT DEFAULT 0;
+
+UPDATE requests
+SET picked_up_at = NOW()
+WHERE picked_up = 1 AND picked_up_at IS NULL;
