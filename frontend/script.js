@@ -20,10 +20,6 @@ if (loggedUser.role !== "consumer") {
   document.getElementById("consumerTools").style.display = "none";
 }
 
-if (loggedUser.role === "cook") {
-  document.querySelector(".consumer-layout").style.display = "none";
-}
-
 if (loggedUser.role !== "consumer") {
   document.getElementById("ratingsSection").style.display = "none";
 }
@@ -41,6 +37,7 @@ let pickMarker = null;
 
 let selectedLat = null;
 let selectedLng = null;
+let editingMealId = null;
 
 // =====================
 // MAIN MAP
@@ -236,7 +233,17 @@ function renderMeals(meals) {
 
       ${
         Number(meal.user_id) === Number(loggedUser.id)
-          ? `<button onclick="deleteMeal(${meal.id})">Διαγραφή</button>`
+          ? `
+            <div class="meal-actions">
+              <button onclick="editMeal(${meal.id})">
+                ✏️ Επεξεργασία
+              </button>
+
+              <button onclick="deleteMeal(${meal.id})">
+                🗑 Διαγραφή
+              </button>
+            </div>
+          `
           : ""
       }
 
@@ -346,7 +353,7 @@ async function sortByDistance() {
 }
 
 // =====================
-// ADD MEAL
+// ADD / UPDATE MEAL
 // =====================
 mealForm.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -377,15 +384,36 @@ mealForm.addEventListener("submit", async (e) => {
     allergens: allergens.join(", "),
   };
 
-  await fetch("http://localhost:3000/api/meals", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
+  if (editingMealId) {
+    await fetch(`http://localhost:3000/api/meals/${editingMealId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    editingMealId = null;
+    alert("Η αγγελία ενημερώθηκε!");
+  } else {
+    await fetch("http://localhost:3000/api/meals", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+
+    alert("Η αγγελία προστέθηκε!");
+  }
 
   mealForm.reset();
+
+  document
+    .querySelectorAll('input[name="allergen"]')
+    .forEach((checkbox) => {
+      checkbox.checked = false;
+    });
 
   if (pickMarker) {
     pickMap.removeLayer(pickMarker);
@@ -394,6 +422,7 @@ mealForm.addEventListener("submit", async (e) => {
 
   selectedLat = null;
   selectedLng = null;
+  editingMealId = null;
 
   loadMeals();
 });
@@ -407,6 +436,72 @@ async function deleteMeal(id) {
   });
 
   loadMeals();
+}
+
+// =====================
+// EDIT MEAL
+// =====================
+function editMeal(id) {
+  const meal = allMeals.find((m) => Number(m.id) === Number(id));
+
+  if (!meal) return;
+
+  title.value = meal.title;
+  description.value = meal.description;
+  portions.value = meal.portions;
+  location.value = meal.location;
+
+  pickup_time.value = meal.pickup_time ? meal.pickup_time.slice(0, 16) : "";
+
+  price.value = meal.price;
+
+  selectedLat = meal.latitude;
+  selectedLng = meal.longitude;
+
+  document
+    .querySelectorAll('input[name="allergen"]')
+    .forEach((checkbox) => {
+      checkbox.checked = false;
+    });
+
+  if (meal.allergens) {
+    const allergensArray = meal.allergens
+      .split(",")
+      .map((a) => a.trim());
+
+    document
+      .querySelectorAll('input[name="allergen"]')
+      .forEach((checkbox) => {
+        checkbox.checked = allergensArray.includes(checkbox.value);
+      });
+  }
+
+  if (pickMap && meal.latitude && meal.longitude) {
+    pickMap.setView([meal.latitude, meal.longitude], 17);
+
+    if (pickMarker) {
+      pickMap.removeLayer(pickMarker);
+    }
+
+    pickMarker = L.marker([meal.latitude, meal.longitude], {
+      draggable: true,
+    }).addTo(pickMap);
+
+    pickMarker.bindPopup("Διόρθωσε το σημείο").openPopup();
+
+    pickMarker.on("dragend", function (e) {
+      const pos = e.target.getLatLng();
+      selectedLat = pos.lat;
+      selectedLng = pos.lng;
+    });
+  }
+
+  editingMealId = id;
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth",
+  });
 }
 
 // =====================
@@ -468,7 +563,6 @@ async function submitRequest() {
 async function loadRequests() {
   requestsList.innerHTML = "";
 
-  // COOK REQUESTS
   if (loggedUser.role === "cook") {
     const res = await fetch(
       `http://localhost:3000/api/requests/${loggedUser.id}`
@@ -542,7 +636,6 @@ async function loadRequests() {
     return;
   }
 
-  // CONSUMER REQUESTS
   if (loggedUser.role === "consumer") {
     const res = await fetch(
       `http://localhost:3000/api/myrequests/${loggedUser.id}`

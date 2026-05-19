@@ -311,7 +311,7 @@ app.post("/api/requests/pickup", (req, res) => {
   const sql = `
     UPDATE requests
     SET picked_up = 1,
-        picked_up_at = CURRENT_TIMESTAMP
+        picked_up_at = NOW()
     WHERE id = ?
   `;
 
