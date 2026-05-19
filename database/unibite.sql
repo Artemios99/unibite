@@ -94,4 +94,11 @@ ADD COLUMN allergens TEXT;
 ALTER TABLE requests
 ADD COLUMN picked_up TINYINT DEFAULT 0;
 
+--------------------
 
+ALTER TABLE requests
+MODIFY picked_up TINYINT NULL DEFAULT NULL;
+
+UPDATE requests
+SET picked_up = NULL
+WHERE status = 'accepted' AND picked_up = 0;

@@ -691,19 +691,29 @@ async function loadRequests() {
 
         <p>${r.note || ""}</p>
 
-        ${
-          Number(r.picked_up) === 1
-            ? `<p class="picked-label">✅ Παραλήφθηκε</p>`
-            : `
-              <button onclick="pickupRequest(${r.id})">
-                Παραλήφθηκε
-              </button>
+  ${
+  r.picked_up === null
+    ? `
+      <button onclick="pickupRequest(${r.id})">
+        Παραλήφθηκε
+      </button>
 
-              <button onclick="notPickupRequest(${r.id})">
-                Δεν παραλήφθηκε
-              </button>
-            `
-        }
+      <button onclick="notPickupRequest(${r.id})">
+        Δεν παραλήφθηκε
+      </button>
+    `
+    : Number(r.picked_up) === 1
+    ? `
+      <p class="picked-label">
+        ✅ Παραλήφθηκε
+      </p>
+    `
+    : `
+      <p class="rejected-label">
+        ❌ Δεν παραλήφθηκε
+      </p>
+    `
+}
       </div>
     `;
   });
@@ -775,7 +785,33 @@ async function pickupRequest(id) {
   alert("Η παραλαβή ολοκληρώθηκε!");
   loadRequests();
 }
+// =====================
+// NOT PICKED UP REQUEST
+// =====================
+async function notPickupRequest(id) {
 
+  const res = await fetch(
+    "http://localhost:3000/api/requests/not-pickup",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        request_id: id,
+      }),
+    }
+  );
+
+  if (!res.ok) {
+    alert("Σφάλμα");
+    return;
+  }
+
+  alert("Σημειώθηκε ως μη παραληφθέν");
+
+  await loadRequests();
+}
 // =====================
 // HELPERS
 // =====================

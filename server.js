@@ -187,6 +187,8 @@ app.get("/api/requests/:cookId", (req, res) => {
   const sql = `
     SELECT 
       requests.id,
+      requests.meal_id,
+      requests.consumer_id,
       requests.portions,
       requests.note,
       requests.status,
@@ -243,7 +245,7 @@ app.post("/api/requests/accept", (req, res) => {
 
       const updateRequestSql = `
         UPDATE requests
-        SET status = 'approved'
+        SET status = 'accepted'
         WHERE id = ?
       `;
 
@@ -255,10 +257,6 @@ app.post("/api/requests/accept", (req, res) => {
     });
   });
 });
-
-
-
-
 // REJECT REQUEST
 app.post("/api/requests/reject", (req, res) => {
   const { request_id } = req.body;
@@ -305,6 +303,7 @@ app.post("/api/requests/pickup", (req, res) => {
 
 // NOT PICKED UP REQUEST
 app.post("/api/requests/not-pickup", (req, res) => {
+
   const { request_id } = req.body;
 
   const sql = `
@@ -314,10 +313,17 @@ app.post("/api/requests/not-pickup", (req, res) => {
   `;
 
   db.query(sql, [request_id], (err) => {
-    if (err) return res.status(500).json(err);
 
-    res.json({ success: true });
+    if (err) {
+      return res.status(500).json(err);
+    }
+
+    res.json({
+      success: true,
+    });
+
   });
+
 });
 
 // UPDATE MEAL
