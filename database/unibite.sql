@@ -48,19 +48,7 @@ CREATE TABLE ratings (
 );
 
 
--- meals
-ALTER TABLE meals ADD price DECIMAL(5,2) DEFAULT 0;
 
--- requests
-ALTER TABLE requests ADD portions INT;
-ALTER TABLE requests ADD note TEXT;
-
--- αν έχεις user_id αντί για consumer_id:
-ALTER TABLE requests CHANGE user_id consumer_id INT;
-
--- status update
-ALTER TABLE requests MODIFY status 
-ENUM('pending','accepted','completed') DEFAULT 'pending';
 
 
 -- 18/5/2026
@@ -116,5 +104,17 @@ ADD COLUMN picked_up_at DATETIME NULL,
 ADD COLUMN rating_penalty_applied TINYINT DEFAULT 0;
 
 UPDATE requests
-SET picked_up_at = NOW()
+SET picked_up_at = NOW()-- meals
+ALTER TABLE meals ADD price DECIMAL(5,2) DEFAULT 0;
+
+-- requests
+ALTER TABLE requests ADD portions INT;
+ALTER TABLE requests ADD note TEXT;
+
+-- αν έχεις user_id αντί για consumer_id:
+ALTER TABLE requests CHANGE user_id consumer_id INT;
+
+-- status update
+ALTER TABLE requests MODIFY status 
+ENUM('pending','accepted','completed') DEFAULT 'pending';
 WHERE picked_up = 1 AND picked_up_at IS NULL;

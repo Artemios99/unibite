@@ -12,6 +12,23 @@ if (!loggedUser) {
 document.getElementById("userInfo").innerText =
   loggedUser.username + " (" + loggedUser.role + ")";
 
+loadUserPoints();
+// =====================
+// LOAD USER POINTS
+// =====================
+async function loadUserPoints() {
+
+  const res = await fetch(
+    `http://localhost:3000/api/users/${loggedUser.id}`
+  );
+
+  const user = await res.json();
+
+  document.getElementById("userPoints").innerHTML = `
+    ⭐ ${user.points} points
+  `;
+}
+
 if (loggedUser.role !== "cook") {
   document.getElementById("addMealSection").style.display = "none";
 }
