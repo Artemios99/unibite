@@ -24,6 +24,8 @@ async function loadUserPoints() {
 
   const user = await res.json();
 
+   console.log("USER POINTS:", user);
+
   document.getElementById("userPoints").innerHTML = `
     ⭐ ${user.points} points
   `;
@@ -900,6 +902,20 @@ function getStatusLabel(status) {
   if (status === "rejected") return "Απορρίφθηκε";
   if (status === "completed") return "Ολοκληρώθηκε";
   return status;
+}
+
+async function loadUserPoints() {
+
+  const res = await fetch(
+    `http://localhost:3000/api/users/${loggedUser.id}`
+  );
+
+  const user = await res.json();
+
+  console.log(user);
+
+  document.getElementById("userPoints").innerText =
+    `⭐ ${user.points} points`;
 }
 
 // =====================
