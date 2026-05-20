@@ -19,8 +19,12 @@
   <h1>🍽️ UniBite</h1>
 
   <div>
+    <div class="user-box"></div>
     <span id="userInfo"></span>
-    <button onclick="logout()">Logout</button>
+    <span id="userPoints"></span>
+  </div>
+
+  <button onclick="logout()">Logout</button>
   </div>
 </header>
 
@@ -91,6 +95,13 @@
         placeholder="Η τοποθεσία μου"
       >
 
+      <input
+        type="number"
+        id="maxResults"
+        placeholder="Μέγιστος αριθμός αποτελεσμάτων"
+        min="1"
+      >
+
       <button onclick="sortByDistance()">
         Ταξινόμηση κοντινότερων
       </button>
@@ -108,27 +119,52 @@
   </section>
 
   <!-- REQUESTS -->
-<section id="requestsSection" class="form-section">
-
+<!-- MY REQUESTS / CONSUMER -->
+<section id="myRequestsSection" class="form-section">
   <div class="requests-header">
-    <h2>Αιτήματα</h2>
+    <h2>📦 Τα αιτήματά μου</h2>
 
     <button id="toggleRequestsBtn" onclick="toggleRequests()">
-      📦 Τα αιτήματά μου
+      Εμφάνιση / Απόκρυψη
     </button>
   </div>
 
   <div id="requestsList" style="display:none;"></div>
-
 </section>
 
-  <!-- RATINGS -->
-  <section id="ratingsSection" class="form-section">
-    <h2>Αξιολογήσεις</h2>
-    <div id="ratingsList"></div>
-  </section>
-
 </main>
+
+<!-- RATING MODAL -->
+<div id="ratingModal" class="modal">
+  <div class="modal-content">
+
+    <h2>Αξιολόγηση γεύματος</h2>
+
+    <p>Βάλε βαθμολογία από 1 έως 5:</p>
+
+    <select id="ratingSelect">
+      <option value="1">⭐ 1</option>
+      <option value="2">⭐⭐ 2</option>
+      <option value="3">⭐⭐⭐ 3</option>
+      <option value="4">⭐⭐⭐⭐ 4</option>
+      <option value="5">⭐⭐⭐⭐⭐ 5</option>
+    </select>
+
+    <br><br>
+
+    <div style="display:flex; gap:10px; justify-content:center;">
+      <button onclick="closeRatingModal()" style="background:gray;">
+        Άκυρο
+      </button>
+
+      <button onclick="submitRating()">
+        Υποβολή αξιολόγησης
+      </button>
+    </div>
+
+  </div>
+</div>
+
 
 <!-- MODAL -->
 <div id="requestModal" class="modal">
