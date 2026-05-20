@@ -485,6 +485,31 @@ app.get("/api/users/:id", (req, res) => {
   );
 });
 
+// GET USER POINTS
+app.get("/api/users/:id", (req, res) => {
+
+  const userId = req.params.id;
+
+  db.query(
+    "SELECT points FROM users WHERE id = ?",
+    [userId],
+    (err, results) => {
+
+      if (err) {
+        return res.status(500).json(err);
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({
+          message: "User not found",
+        });
+      }
+
+      res.json(results[0]);
+    }
+  );
+});
+
 app.listen(3000, () => {
   console.log("Server running on http://localhost:3000");
 });
