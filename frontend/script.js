@@ -9,38 +9,25 @@ if (!loggedUser) {
   window.location.href = "login.html";
 }
 
-document.getElementById("userInfo").innerText =
-  loggedUser.username + " (" + loggedUser.role + ")";
+const userInfo = document.getElementById("userInfo");
 
-loadUserPoints();
-// =====================
-// LOAD USER POINTS
-// =====================
-async function loadUserPoints() {
-
-  const res = await fetch(
-    `http://localhost:3000/api/users/${loggedUser.id}`
-  );
-
-  const user = await res.json();
-
-   console.log("USER POINTS:", user);
-
-  document.getElementById("userPoints").innerHTML = `
-    ⭐ ${user.points} points
-  `;
+if (userInfo) {
+  userInfo.innerText = loggedUser.username + " (" + loggedUser.role + ")";
 }
 
 if (loggedUser.role !== "cook") {
-  document.getElementById("addMealSection").style.display = "none";
+  const addMealSection = document.getElementById("addMealSection");
+  if (addMealSection) addMealSection.style.display = "none";
 }
 
 if (loggedUser.role !== "consumer") {
-  document.getElementById("consumerTools").style.display = "none";
+  const consumerTools = document.getElementById("consumerTools");
+  if (consumerTools) consumerTools.style.display = "none";
 }
 
 if (loggedUser.role !== "consumer") {
-  document.getElementById("ratingsSection").style.display = "none";
+  const ratingsSection = document.getElementById("ratingsSection");
+  if (ratingsSection) ratingsSection.style.display = "none";
 }
 
 let selectedMealId = null;
@@ -57,6 +44,27 @@ let pickMarker = null;
 let selectedLat = null;
 let selectedLng = null;
 let editingMealId = null;
+
+// =====================
+// LOAD USER POINTS
+// =====================
+async function loadUserPoints() {
+  try {
+    const res = await fetch(`http://localhost:3000/api/users/${loggedUser.id}`);
+
+    if (!res.ok) return;
+
+    const user = await res.json();
+
+    const userPoints = document.getElementById("userPoints");
+
+    if (userPoints) {
+      userPoints.innerText = `⭐ ${user.points} points`;
+    }
+  } catch (err) {
+    console.log("Points error:", err);
+  }
+}
 
 // =====================
 // MAIN MAP
@@ -202,6 +210,8 @@ function getDistanceKm(lat1, lon1, lat2, lon2) {
 // LOAD MEALS
 // =====================
 async function loadMeals() {
+  if (!mealsList) return;
+
   const res = await fetch("http://localhost:3000/api/meals");
   allMeals = await res.json();
 
@@ -434,7 +444,7 @@ mealForm.addEventListener("submit", async (e) => {
       checkbox.checked = false;
     });
 
-  if (pickMarker) {
+  if (pickMarker && pickMap) {
     pickMap.removeLayer(pickMarker);
     pickMarker = null;
   }
@@ -580,6 +590,8 @@ async function submitRequest() {
 // LOAD REQUESTS
 // =====================
 async function loadRequests() {
+  if (!requestsList) return;
+
   requestsList.innerHTML = "";
 
   if (loggedUser.role === "cook") {
@@ -791,6 +803,7 @@ async function notPickupRequest(id) {
 // =====================
 async function loadPendingRatings() {
   if (loggedUser.role !== "consumer") return;
+  if (!ratingsList) return;
 
   await fetch(`http://localhost:3000/api/ratings/check-expired/${loggedUser.id}`, {
     method: "POST",
@@ -833,9 +846,7 @@ async function loadPendingRatings() {
     ratingsList.innerHTML += `
       <div class="request-card">
         <h3>${item.title}</h3>
-
         <p>${item.description || ""}</p>
-
         <p><b>Μάγειρας:</b> ${item.cook_name}</p>
 
         ${warning}
@@ -856,9 +867,6 @@ async function loadPendingRatings() {
   });
 }
 
-// =====================
-// SUBMIT RATING
-// =====================
 async function submitRating(requestId, mealId, rating) {
   const res = await fetch("http://localhost:3000/api/ratings", {
     method: "POST",
@@ -882,11 +890,9 @@ async function submitRating(requestId, mealId, rating) {
 
   loadPendingRatings();
   loadRequests();
+  loadUserPoints();
 }
 
-// =====================
-// HELPERS
-// =====================
 function formatDate(date) {
   if (!date) return "Δεν δηλώθηκε";
   return new Date(date).toLocaleString("el-GR");
@@ -904,34 +910,16 @@ function getStatusLabel(status) {
   return status;
 }
 
-async function loadUserPoints() {
-
-  const res = await fetch(
-    `http://localhost:3000/api/users/${loggedUser.id}`
-  );
-
-  const user = await res.json();
-
-  console.log(user);
-
-  document.getElementById("userPoints").innerText =
-    `⭐ ${user.points} points`;
-}
-
-// =====================
-// LOGOUT
-// =====================
 function logout() {
   localStorage.removeItem("user");
   window.location.href = "login.html";
 }
 
-// =====================
-// TOGGLE REQUESTS
-// =====================
 function toggleRequests() {
   const list = document.getElementById("requestsList");
   const btn = document.getElementById("toggleRequestsBtn");
+
+  if (!list || !btn) return;
 
   if (list.style.display === "none") {
     list.style.display = "block";
@@ -945,6 +933,7 @@ function toggleRequests() {
 initMap();
 initPickMap();
 
+loadUserPoints();
 loadMeals();
 loadRequests();
 loadPendingRatings();

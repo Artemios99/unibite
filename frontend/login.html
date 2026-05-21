@@ -7,75 +7,129 @@
   <!-- GOOGLE FONT -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link 
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" 
+    rel="stylesheet"
+  >
 
   <!-- FONT AWESOME ICONS -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link 
+    rel="stylesheet" 
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  >
 
   <link rel="stylesheet" href="style.css">
 
   <!-- TOASTR CSS -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+  <link 
+    rel="stylesheet" 
+    href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"
+  >
 </head>
+
 <body>
 
 <div class="bg-shape bg-shape-1"></div>
 <div class="bg-shape bg-shape-2"></div>
 
-<header>
+<header class="login-header">
+
   <div class="logo-circle">
     <i class="fa-solid fa-utensils"></i>
   </div>
 
   <h1>UniBite</h1>
+
   <p>Μοιράσου φαγητό, βοήθησε άλλους</p>
+
 </header>
 
-<main>
+<main class="login-main">
 
-  <section id="loginSection" class="form-section">
-    <h2><i class="fa-solid fa-right-to-bracket"></i> Σύνδεση</h2>
+  <!-- LOGIN -->
+  <section id="loginSection" class="form-section login-card">
+
+    <h2>
+      <i class="fa-solid fa-right-to-bracket"></i>
+      Σύνδεση
+    </h2>
 
     <form id="loginForm">
+
       <div class="input-group">
         <i class="fa-solid fa-envelope"></i>
-        <input type="email" id="loginEmail" placeholder="Email" required>
+        <input 
+          type="email" 
+          id="loginEmail" 
+          placeholder="Email" 
+          required
+        >
       </div>
 
       <div class="input-group">
         <i class="fa-solid fa-lock"></i>
-        <input type="password" id="loginPassword" placeholder="Password" required>
+        <input 
+          type="password" 
+          id="loginPassword" 
+          placeholder="Password" 
+          required
+        >
       </div>
 
       <button type="submit">
         <i class="fa-solid fa-arrow-right"></i>
         Σύνδεση
       </button>
+
     </form>
 
     <p>
       Δεν έχεις λογαριασμό;
-      <button type="button" id="showRegisterBtn">Κάνε εγγραφή</button>
+      <button type="button" id="showRegisterBtn">
+        Κάνε εγγραφή
+      </button>
     </p>
+
   </section>
 
-  <section id="registerSection" class="form-section" style="display: none;">
-    <h2><i class="fa-solid fa-user-plus"></i> Εγγραφή</h2>
+  <!-- REGISTER -->
+  <section id="registerSection" class="form-section login-card" style="display: none;">
+
+    <h2>
+      <i class="fa-solid fa-user-plus"></i>
+      Εγγραφή
+    </h2>
 
     <form id="registerForm">
+
       <div class="input-group">
         <i class="fa-solid fa-user"></i>
-        <input type="text" id="regUsername" placeholder="Username" required>
+        <input 
+          type="text" 
+          id="regUsername" 
+          placeholder="Username" 
+          required
+        >
       </div>
 
       <div class="input-group">
         <i class="fa-solid fa-envelope"></i>
-        <input type="email" id="regEmail" placeholder="Email" required>
+        <input 
+          type="email" 
+          id="regEmail" 
+          placeholder="Email" 
+          required
+        >
       </div>
 
       <div class="input-group">
         <i class="fa-solid fa-lock"></i>
-        <input type="password" id="regPassword" placeholder="Password" required>
+        <input 
+          type="password" 
+          id="regPassword" 
+          placeholder="Password" 
+          required
+        >
       </div>
 
       <div class="input-group">
@@ -91,19 +145,25 @@
         <i class="fa-solid fa-check"></i>
         Εγγραφή
       </button>
+
     </form>
 
     <p>
       Έχεις ήδη λογαριασμό;
-      <button type="button" id="showLoginBtn">Σύνδεση</button>
+      <button type="button" id="showLoginBtn">
+        Σύνδεση
+      </button>
     </p>
+
   </section>
 
 </main>
 
+<!-- TOASTR JS -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
 <script src="auth.js"></script>
+
 </body>
 </html>
