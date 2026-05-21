@@ -844,7 +844,7 @@ async function loadPendingRatings() {
     }
 
     ratingsList.innerHTML += `
-      <div class="request-card">
+      <div class="rating-card">
         <h3>${item.title}</h3>
         <p>${item.description || ""}</p>
         <p><b>Μάγειρας:</b> ${item.cook_name}</p>
