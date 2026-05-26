@@ -118,3 +118,8 @@ ALTER TABLE requests CHANGE user_id consumer_id INT;
 ALTER TABLE requests MODIFY status 
 ENUM('pending','accepted','completed') DEFAULT 'pending';
 WHERE picked_up = 1 AND picked_up_at IS NULL;
+
+
+--26/5/2026
+ALTER TABLE meals
+ADD delivery_details TEXT;

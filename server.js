@@ -77,6 +77,7 @@ app.post("/api/meals", (req, res) => {
     description,
     portions,
     location,
+    delivery_details,
     latitude,
     longitude,
     pickup_time,
@@ -86,8 +87,8 @@ app.post("/api/meals", (req, res) => {
 
   const sql = `
     INSERT INTO meals 
-    (user_id, title, description, portions, location, latitude, longitude, pickup_time, price, allergens)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (user_id, title, description, portions, location, delivery_details, latitude, longitude, pickup_time, price, allergens)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
   db.query(
@@ -98,6 +99,7 @@ app.post("/api/meals", (req, res) => {
       description,
       portions,
       location,
+      delivery_details,
       latitude,
       longitude,
       pickup_time,
@@ -121,6 +123,7 @@ app.put("/api/meals/:id", (req, res) => {
     description,
     portions,
     location,
+    delivery_details,
     latitude,
     longitude,
     pickup_time,
@@ -131,7 +134,7 @@ app.put("/api/meals/:id", (req, res) => {
   const sql = `
     UPDATE meals
     SET user_id = ?, title = ?, description = ?, portions = ?, location = ?,
-        latitude = ?, longitude = ?, pickup_time = ?, price = ?, allergens = ?
+    delivery_details = ?, latitude = ?, longitude = ?, pickup_time = ?, price = ?, allergens = ?
     WHERE id = ?
   `;
 
@@ -143,6 +146,7 @@ app.put("/api/meals/:id", (req, res) => {
       description,
       portions,
       location,
+      delivery_details,
       latitude,
       longitude,
       pickup_time,
@@ -206,6 +210,10 @@ app.get("/api/requests/:cookId", (req, res) => {
     JOIN meals ON requests.meal_id = meals.id
     JOIN users ON requests.consumer_id = users.id
     WHERE meals.user_id = ?
+    AND (
+    requests.status IN ('pending', 'accepted')
+    OR requests.created_at >= NOW() - INTERVAL 48 HOUR
+    )
     ORDER BY requests.id DESC
   `;
 
@@ -232,6 +240,7 @@ app.get("/api/myrequests/:consumerId", (req, res) => {
       meals.title,
       meals.description,
       meals.location,
+      meals.delivery_details,
       meals.pickup_time,
       meals.price,
       users.username AS cook_name

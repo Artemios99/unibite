@@ -250,6 +250,8 @@ function renderMeals(meals) {
 
       <p><b>Τοποθεσία:</b> ${meal.location}</p>
 
+      <p><b>Λεπτομέρειες παράδοσης:</b> ${meal.delivery_details || "Δεν δόθηκαν"}</p>
+
       <p><b>Τιμή:</b> ${meal.price}€</p>
 
       ${
@@ -406,6 +408,7 @@ mealForm.addEventListener("submit", async (e) => {
     description: description.value,
     portions: portions.value,
     location: location.value,
+    delivery_details: delivery_details.value,
     latitude: selectedLat,
     longitude: selectedLng,
     pickup_time: pickup_time.value,
@@ -479,6 +482,7 @@ function editMeal(id) {
   description.value = meal.description;
   portions.value = meal.portions;
   location.value = meal.location;
+  delivery_details.value = meal.delivery_details || "";
 
   pickup_time.value = meal.pickup_time ? meal.pickup_time.slice(0, 16) : "";
 
@@ -692,6 +696,8 @@ async function loadRequests() {
           <p><b>Μερίδες που ζήτησες:</b> ${r.portions}</p>
 
           <p><b>Τοποθεσία:</b> ${r.location || "Δεν δηλώθηκε"}</p>
+
+          <p><b>Λεπτομέρειες παράδοσης:</b> ${r.delivery_details || "Δεν δόθηκαν"}</p>
 
           <p><b>Ώρα παραλαβής:</b> ${formatDate(r.pickup_time)}</p>
 
