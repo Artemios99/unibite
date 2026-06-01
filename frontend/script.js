@@ -1000,7 +1000,7 @@ async function loadAdminDashboard() {
     if (!adminStats || !topDonor || !topRatedMeals) return;
 
     adminStats.innerHTML = `
-      <div class="admin-card">
+      <div class="admin-card stats-card">
         <h3>🍽️ Μερίδες που διαμοιράστηκαν τον τελευταίο μήνα</h3>
         <p class="admin-number">${data.total_portions_last_month || 0}</p>
       </div>
@@ -1008,9 +1008,12 @@ async function loadAdminDashboard() {
 
     if (data.top_donor) {
       topDonor.innerHTML = `
-        <div class="admin-card">
+        <div class="admin-card donor-card">
+          <div class="donor-icon">🏆</div>
           <h3>${data.top_donor.username}</h3>
-          <p>Προσέφερε συνολικά <b>${data.top_donor.total_donated}</b> μερίδες</p>
+          <p>Προσέφερε συνολικά</p>
+          <strong>${data.top_donor.total_donated}</strong>
+          <p>μερίδες</p>
         </div>
       `;
     } else {
@@ -1023,28 +1026,40 @@ async function loadAdminDashboard() {
     }
 
     topRatedMeals.innerHTML = `
-  <div class="podium">
-    ${data.top_rated_meals
-      .slice(0, 3)
-      .map((meal, index) => {
-        const positions = ["gold", "silver", "bronze"];
-        const medals = ["🥇", "🥈", "🥉"];
-        const places = ["1η θέση", "2η θέση", "3η θέση"];
+      <div class="podium">
+        ${data.top_rated_meals
+          .slice(0, 3)
+          .map((meal, index) => {
+            const positions = ["gold", "silver", "bronze"];
+            const medals = ["🥇", "🥈", "🥉"];
+            const places = ["1η θέση", "2η θέση", "3η θέση"];
 
-        return `
-          <div class="podium-column ${positions[index]}">
-            <div class="medal">${medals[index]}</div>
-            <h3>${places[index]}</h3>
-            <h4>${meal.title}</h4>
-            <p><b>Μάγειρας:</b> ${meal.cook_name}</p>
-            <p>⭐ ${Number(meal.avg_rating).toFixed(1)}</p>
-            <p>${meal.rating_count} αξιολογήσεις</p>
-          </div>
-        `;
-      })
-      .join("")}
-  </div>
-`;
+            return `
+              <div class="podium-column ${positions[index]}">
+                <div class="medal">${medals[index]}</div>
+
+                <h3>${places[index]}</h3>
+
+                <h4>${meal.title}</h4>
+
+                <p class="cook-name">
+                  Μάγειρας: <b>${meal.cook_name}</b>
+                </p>
+
+                <div class="podium-rating">
+                  <div class="rating-main">
+                    ⭐ ${Number(meal.avg_rating).toFixed(1)}
+                  </div>
+                  <div class="rating-count">
+                    ${meal.rating_count} αξιολογήσεις
+                  </div>
+                </div>
+              </div>
+            `;
+          })
+          .join("")}
+      </div>
+    `;
   } catch (err) {
     console.log("Admin dashboard fetch error:", err);
   }
