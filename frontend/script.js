@@ -1022,18 +1022,29 @@ async function loadAdminDashboard() {
       return;
     }
 
-    topRatedMeals.innerHTML = "";
+    topRatedMeals.innerHTML = `
+  <div class="podium">
+    ${data.top_rated_meals
+      .slice(0, 3)
+      .map((meal, index) => {
+        const positions = ["gold", "silver", "bronze"];
+        const medals = ["🥇", "🥈", "🥉"];
+        const places = ["1η θέση", "2η θέση", "3η θέση"];
 
-    data.top_rated_meals.forEach((meal) => {
-      topRatedMeals.innerHTML += `
-        <div class="admin-card">
-          <h3>${meal.title}</h3>
-          <p><b>Μάγειρας:</b> ${meal.cook_name}</p>
-          <p><b>Μέση βαθμολογία:</b> ⭐ ${Number(meal.avg_rating).toFixed(1)}</p>
-          <p><b>Αξιολογήσεις:</b> ${meal.rating_count}</p>
-        </div>
-      `;
-    });
+        return `
+          <div class="podium-column ${positions[index]}">
+            <div class="medal">${medals[index]}</div>
+            <h3>${places[index]}</h3>
+            <h4>${meal.title}</h4>
+            <p><b>Μάγειρας:</b> ${meal.cook_name}</p>
+            <p>⭐ ${Number(meal.avg_rating).toFixed(1)}</p>
+            <p>${meal.rating_count} αξιολογήσεις</p>
+          </div>
+        `;
+      })
+      .join("")}
+  </div>
+`;
   } catch (err) {
     console.log("Admin dashboard fetch error:", err);
   }
