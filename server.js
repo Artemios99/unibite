@@ -15,6 +15,10 @@ app.get("/", (req, res) => {
 app.post("/api/login", (req, res) => {
   const { email, password } = req.body;
 
+  if (!email || !password) {
+    return res.status(400).json({ error: "Email and password are required" });
+  }
+
   db.query("SELECT * FROM users WHERE email = ?", [email], (err, result) => {
     if (err) return res.status(500).json(err);
 
@@ -33,6 +37,7 @@ app.post("/api/login", (req, res) => {
         id: user.id,
         username: user.username,
         role: user.role,
+        points: user.points,
       },
     });
   });
@@ -42,14 +47,26 @@ app.post("/api/login", (req, res) => {
 app.post("/api/register", (req, res) => {
   const { username, email, password, role } = req.body;
 
-  const sql = `
-    INSERT INTO users (username, email, password, role, points)
-    VALUES (?, ?, ?, ?, 5)
-  `;
+  if (!username || !email || !password || !role) {
+    return res.status(400).json({ error: "All fields are required" });
+  }
 
-  db.query(sql, [username, email, password, role], (err) => {
+  db.query("SELECT id FROM users WHERE email = ?", [email], (err, result) => {
     if (err) return res.status(500).json(err);
-    res.json({ message: "registered" });
+
+    if (result.length > 0) {
+      return res.status(409).json({ error: "Email already exists" });
+    }
+
+    const sql = `
+      INSERT INTO users (username, email, password, role, points)
+      VALUES (?, ?, ?, ?, 5)
+    `;
+
+    db.query(sql, [username, email, password, role], (err2) => {
+      if (err2) return res.status(500).json(err2);
+      res.json({ message: "registered" });
+    });
   });
 });
 
@@ -64,7 +81,13 @@ app.get("/api/meals", (req, res) => {
   `;
 
   db.query(sql, (err, result) => {
-    if (err) return res.status(500).json(err);
+
+    if (err) {
+      console.log("MEALS ERROR:");
+      console.log(err);
+      return res.status(500).json(err);
+    }
+
     res.json(result);
   });
 });
@@ -84,6 +107,10 @@ app.post("/api/meals", (req, res) => {
     price,
     allergens,
   } = req.body;
+
+  if (!user_id || !title || !description || !portions || !location) {
+    return res.status(400).json({ error: "Required meal fields are missing" });
+  }
 
   const sql = `
     INSERT INTO meals 
@@ -134,7 +161,7 @@ app.put("/api/meals/:id", (req, res) => {
   const sql = `
     UPDATE meals
     SET user_id = ?, title = ?, description = ?, portions = ?, location = ?,
-    delivery_details = ?, latitude = ?, longitude = ?, pickup_time = ?, price = ?, allergens = ?
+        delivery_details = ?, latitude = ?, longitude = ?, pickup_time = ?, price = ?, allergens = ?
     WHERE id = ?
   `;
 
@@ -179,6 +206,10 @@ app.delete("/api/meals/:id", (req, res) => {
 app.post("/api/requests", (req, res) => {
   const { meal_id, consumer_id, portions, note } = req.body;
 
+  if (!meal_id || !consumer_id || !portions) {
+    return res.status(400).json({ error: "Required request fields are missing" });
+  }
+
   const sql = `
     INSERT INTO requests (meal_id, consumer_id, portions, note, status)
     VALUES (?, ?, ?, ?, 'pending')
@@ -210,10 +241,10 @@ app.get("/api/requests/:cookId", (req, res) => {
     JOIN meals ON requests.meal_id = meals.id
     JOIN users ON requests.consumer_id = users.id
     WHERE meals.user_id = ?
-    AND (
-    requests.status IN ('pending', 'accepted')
-    OR requests.created_at >= NOW() - INTERVAL 48 HOUR
-    )
+      AND (
+        requests.status IN ('pending', 'accepted')
+        OR requests.created_at >= NOW() - INTERVAL 48 HOUR
+      )
     ORDER BY requests.id DESC
   `;
 
@@ -261,6 +292,10 @@ app.get("/api/myrequests/:consumerId", (req, res) => {
 app.post("/api/requests/accept", (req, res) => {
   const { request_id, portions } = req.body;
 
+  if (!request_id || !portions) {
+    return res.status(400).json({ error: "request_id and portions are required" });
+  }
+
   db.query(
     "SELECT meal_id FROM requests WHERE id = ?",
     [request_id],
@@ -303,6 +338,10 @@ app.post("/api/requests/accept", (req, res) => {
 app.post("/api/requests/reject", (req, res) => {
   const { request_id } = req.body;
 
+  if (!request_id) {
+    return res.status(400).json({ error: "request_id is required" });
+  }
+
   db.query(
     "UPDATE requests SET status = 'rejected' WHERE id = ?",
     [request_id],
@@ -317,6 +356,10 @@ app.post("/api/requests/reject", (req, res) => {
 app.post("/api/requests/pickup", (req, res) => {
   const { request_id } = req.body;
 
+  if (!request_id) {
+    return res.status(400).json({ error: "request_id is required" });
+  }
+
   const sql = `
     UPDATE requests
     SET picked_up = 1,
@@ -326,10 +369,7 @@ app.post("/api/requests/pickup", (req, res) => {
 
   db.query(sql, [request_id], (err) => {
     if (err) return res.status(500).json(err);
-
-    res.json({
-      success: true,
-    });
+    res.json({ success: true });
   });
 });
 
@@ -337,9 +377,14 @@ app.post("/api/requests/pickup", (req, res) => {
 app.post("/api/requests/not-pickup", (req, res) => {
   const { request_id } = req.body;
 
+  if (!request_id) {
+    return res.status(400).json({ error: "request_id is required" });
+  }
+
   const sql = `
     UPDATE requests
-    SET picked_up = 0
+    SET picked_up = 0,
+        picked_up_at = NULL
     WHERE id = ?
   `;
 
@@ -433,6 +478,10 @@ app.post("/api/ratings/check-expired/:consumerId", (req, res) => {
 app.post("/api/ratings", (req, res) => {
   const { request_id, meal_id, user_id, rating } = req.body;
 
+  if (!request_id || !meal_id || !user_id || !rating) {
+    return res.status(400).json({ error: "All rating fields are required" });
+  }
+
   const pointsToCook = Number(rating) > 3 ? 2 : 1;
 
   const insertRatingSql = `
@@ -469,19 +518,15 @@ app.post("/api/ratings", (req, res) => {
   });
 });
 
-// GET USER
+// GET USER POINTS
 app.get("/api/users/:id", (req, res) => {
-
   const userId = req.params.id;
 
   db.query(
-    "SELECT points FROM users WHERE id = ?",
+    "SELECT id, username, role, points FROM users WHERE id = ?",
     [userId],
     (err, results) => {
-
-      if (err) {
-        return res.status(500).json(err);
-      }
+      if (err) return res.status(500).json(err);
 
       if (results.length === 0) {
         return res.status(404).json({
@@ -494,29 +539,59 @@ app.get("/api/users/:id", (req, res) => {
   );
 });
 
-// GET USER POINTS
-app.get("/api/users/:id", (req, res) => {
+// ADMIN DASHBOARD
+app.get("/api/admin/dashboard", (req, res) => {
+  const totalPortionsSql = `
+    SELECT COALESCE(SUM(requests.portions), 0) AS total_portions_last_month
+    FROM requests
+    WHERE requests.status = 'completed'
+      AND requests.created_at >= NOW() - INTERVAL 1 MONTH
+  `;
 
-  const userId = req.params.id;
+  const topDonorSql = `
+    SELECT 
+      users.username,
+      COALESCE(SUM(requests.portions), 0) AS total_donated
+    FROM requests
+    JOIN meals ON requests.meal_id = meals.id
+    JOIN users ON meals.user_id = users.id
+    WHERE requests.status = 'completed'
+    GROUP BY users.id, users.username
+    ORDER BY total_donated DESC
+    LIMIT 1
+  `;
 
-  db.query(
-    "SELECT points FROM users WHERE id = ?",
-    [userId],
-    (err, results) => {
+  const topRatedMealsSql = `
+    SELECT 
+      meals.title,
+      users.username AS cook_name,
+      AVG(ratings.rating) AS avg_rating,
+      COUNT(ratings.id) AS rating_count
+    FROM ratings
+    JOIN meals ON ratings.meal_id = meals.id
+    JOIN users ON meals.user_id = users.id
+    GROUP BY meals.id, meals.title, users.username
+    ORDER BY avg_rating DESC, rating_count DESC
+    LIMIT 5
+  `;
 
-      if (err) {
-        return res.status(500).json(err);
-      }
+  db.query(totalPortionsSql, (err, totalResult) => {
+    if (err) return res.status(500).json(err);
 
-      if (results.length === 0) {
-        return res.status(404).json({
-          message: "User not found",
+    db.query(topDonorSql, (err2, donorResult) => {
+      if (err2) return res.status(500).json(err2);
+
+      db.query(topRatedMealsSql, (err3, ratingResult) => {
+        if (err3) return res.status(500).json(err3);
+
+        res.json({
+          total_portions_last_month: totalResult[0].total_portions_last_month,
+          top_donor: donorResult.length > 0 ? donorResult[0] : null,
+          top_rated_meals: ratingResult,
         });
-      }
-
-      res.json(results[0]);
-    }
-  );
+      });
+    });
+  });
 });
 
 app.listen(3000, () => {

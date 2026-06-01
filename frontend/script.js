@@ -1,3 +1,5 @@
+const API_URL = "http://localhost:3000";
+
 const mealForm = document.getElementById("mealForm");
 const mealsList = document.getElementById("mealsList");
 const requestsList = document.getElementById("requestsList");
@@ -11,23 +13,44 @@ if (!loggedUser) {
 
 const userInfo = document.getElementById("userInfo");
 
-if (userInfo) {
+if (userInfo && loggedUser) {
   userInfo.innerText = loggedUser.username + " (" + loggedUser.role + ")";
 }
 
-if (loggedUser.role !== "cook") {
+if (loggedUser && loggedUser.role !== "cook") {
   const addMealSection = document.getElementById("addMealSection");
   if (addMealSection) addMealSection.style.display = "none";
 }
 
-if (loggedUser.role !== "consumer") {
+if (loggedUser && loggedUser.role !== "consumer") {
   const consumerTools = document.getElementById("consumerTools");
   if (consumerTools) consumerTools.style.display = "none";
 }
 
-if (loggedUser.role !== "consumer") {
+if (loggedUser && loggedUser.role !== "consumer") {
   const ratingsSection = document.getElementById("ratingsSection");
   if (ratingsSection) ratingsSection.style.display = "none";
+}
+
+const adminSection = document.getElementById("adminSection");
+
+if (loggedUser && loggedUser.role !== "admin") {
+  if (adminSection) adminSection.style.display = "none";
+}
+
+if (loggedUser && loggedUser.role === "admin") {
+  const addMealSection = document.getElementById("addMealSection");
+  const consumerTools = document.getElementById("consumerTools");
+  const mealsSection = document.querySelector(".meals-section");
+  const myRequestsSection = document.getElementById("myRequestsSection");
+  const ratingsSection = document.getElementById("ratingsSection");
+
+  if (addMealSection) addMealSection.style.display = "none";
+  if (consumerTools) consumerTools.style.display = "none";
+  if (mealsSection) mealsSection.style.display = "none";
+  if (myRequestsSection) myRequestsSection.style.display = "none";
+  if (ratingsSection) ratingsSection.style.display = "none";
+  if (adminSection) adminSection.style.display = "block";
 }
 
 let selectedMealId = null;
@@ -45,12 +68,12 @@ let selectedLat = null;
 let selectedLng = null;
 let editingMealId = null;
 
-// =====================
 // LOAD USER POINTS
-// =====================
 async function loadUserPoints() {
+  if (!loggedUser) return;
+
   try {
-    const res = await fetch(`http://localhost:3000/api/users/${loggedUser.id}`);
+    const res = await fetch(`${API_URL}/api/users/${loggedUser.id}`);
 
     if (!res.ok) return;
 
@@ -66,13 +89,11 @@ async function loadUserPoints() {
   }
 }
 
-// =====================
 // MAIN MAP
-// =====================
 function initMap() {
   const mapDiv = document.getElementById("map");
 
-  if (!mapDiv || loggedUser.role !== "consumer") return;
+  if (!mapDiv || !loggedUser || loggedUser.role !== "consumer") return;
 
   map = L.map("map", {
     fullscreenControl: true,
@@ -83,13 +104,11 @@ function initMap() {
   }).addTo(map);
 }
 
-// =====================
 // PICK MAP
-// =====================
 function initPickMap() {
   const pickMapDiv = document.getElementById("pickMap");
 
-  if (!pickMapDiv || loggedUser.role !== "cook") return;
+  if (!pickMapDiv || !loggedUser || loggedUser.role !== "cook") return;
 
   pickMap = L.map("pickMap").setView([38.2885, 21.7889], 15);
 
@@ -119,14 +138,21 @@ function initPickMap() {
   });
 }
 
-// =====================
 // SEARCH LOCATION
-// =====================
 async function searchPickupLocation() {
-  const address = document.getElementById("location").value.trim();
+  const locationInput = document.getElementById("location");
+
+  if (!locationInput) return;
+
+  const address = locationInput.value.trim();
 
   if (!address) {
     alert("Γράψε πρώτα μια διεύθυνση.");
+    return;
+  }
+
+  if (!pickMap) {
+    alert("Ο χάρτης δεν έχει φορτώσει ακόμα.");
     return;
   }
 
@@ -159,9 +185,7 @@ async function searchPickupLocation() {
   });
 }
 
-// =====================
 // GEOCODING
-// =====================
 async function getCoordinates(address) {
   try {
     const fullAddress = address + ", Patras, Greece";
@@ -185,9 +209,7 @@ async function getCoordinates(address) {
   }
 }
 
-// =====================
 // DISTANCE
-// =====================
 function getDistanceKm(lat1, lon1, lat2, lon2) {
   const R = 6371;
 
@@ -206,29 +228,31 @@ function getDistanceKm(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
-// =====================
 // LOAD MEALS
-// =====================
 async function loadMeals() {
   if (!mealsList) return;
 
-  const res = await fetch("http://localhost:3000/api/meals");
-  allMeals = await res.json();
+  try {
+    const res = await fetch(`${API_URL}/api/meals`);
+    allMeals = await res.json();
 
-  renderMeals(allMeals);
+    renderMeals(allMeals);
 
-  if (loggedUser.role === "consumer") {
-    renderMap(allMeals);
+    if (loggedUser.role === "consumer") {
+      renderMap(allMeals);
+    }
+  } catch (err) {
+    console.log("Load meals error:", err);
   }
 }
 
-// =====================
 // RENDER MEALS
-// =====================
 function renderMeals(meals) {
+  if (!mealsList) return;
+
   mealsList.innerHTML = "";
 
-  if (meals.length === 0) {
+  if (!meals || meals.length === 0) {
     mealsList.innerHTML = "<p>Δεν υπάρχουν αγγελίες.</p>";
     return;
   }
@@ -291,9 +315,7 @@ function renderMeals(meals) {
   });
 }
 
-// =====================
 // RENDER MAP
-// =====================
 function renderMap(meals) {
   if (!map) return;
 
@@ -303,7 +325,10 @@ function renderMap(meals) {
   meals.forEach((meal) => {
     if (!meal.latitude || !meal.longitude) return;
 
-    const marker = L.marker([meal.latitude, meal.longitude]).addTo(map);
+    const marker = L.marker([
+      Number(meal.latitude),
+      Number(meal.longitude),
+    ]).addTo(map);
 
     marker.bindPopup(`
       <b>${meal.title}</b><br>
@@ -319,14 +344,22 @@ function renderMap(meals) {
   }
 }
 
-// =====================
 // SORT DISTANCE
-// =====================
 async function sortByDistance() {
-  const address = document.getElementById("userLocation").value.trim();
+  const userLocation = document.getElementById("userLocation");
+  const maxResultsInput = document.getElementById("maxResults");
+
+  if (!userLocation) return;
+
+  const address = userLocation.value.trim();
 
   if (!address) {
     alert("Γράψε τη διεύθυνσή σου.");
+    return;
+  }
+
+  if (!map) {
+    alert("Ο χάρτης δεν έχει φορτώσει ακόμα.");
     return;
   }
 
@@ -356,7 +389,7 @@ async function sortByDistance() {
 
   userMarker.bindPopup("<b>Η τοποθεσία σου</b>").openPopup();
 
-  const sorted = [...allMeals].sort((a, b) => {
+  let sorted = [...allMeals].sort((a, b) => {
     if (!a.latitude || !a.longitude) return 1;
     if (!b.latitude || !b.longitude) return -1;
 
@@ -377,136 +410,157 @@ async function sortByDistance() {
     return distA - distB;
   });
 
+  const maxResults = maxResultsInput ? Number(maxResultsInput.value) : 0;
+
+  if (maxResults > 0) {
+    sorted = sorted.slice(0, maxResults);
+  }
+
   renderMeals(sorted);
   renderMap(sorted);
 
   map.setView([coords.lat, coords.lng], 14);
 }
 
-// =====================
 // ADD / UPDATE MEAL
-// =====================
-mealForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
+if (mealForm) {
+  mealForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-  if (!selectedLat || !selectedLng) {
-    alert("Επίλεξε σημείο στον χάρτη.");
-    return;
-  }
+    if (!selectedLat || !selectedLng) {
+      alert("Επίλεξε σημείο στον χάρτη.");
+      return;
+    }
 
-  const allergens = [];
+    const titleInput = document.getElementById("title");
+    const descriptionInput = document.getElementById("description");
+    const portionsInput = document.getElementById("portions");
+    const locationInput = document.getElementById("location");
+    const deliveryDetailsInput = document.getElementById("delivery_details");
+    const pickupTimeInput = document.getElementById("pickup_time");
+    const priceInput = document.getElementById("price");
 
-  document
-    .querySelectorAll('input[name="allergen"]:checked')
-    .forEach((checkbox) => {
-      allergens.push(checkbox.value);
-    });
+    const allergens = [];
 
-  const data = {
-    user_id: loggedUser.id,
-    title: title.value,
-    description: description.value,
-    portions: portions.value,
-    location: location.value,
-    delivery_details: delivery_details.value,
-    latitude: selectedLat,
-    longitude: selectedLng,
-    pickup_time: pickup_time.value,
-    price: price.value,
-    allergens: allergens.join(", "),
-  };
+    document
+      .querySelectorAll('input[name="allergen"]:checked')
+      .forEach((checkbox) => {
+        allergens.push(checkbox.value);
+      });
 
-  if (editingMealId) {
-    await fetch(`http://localhost:3000/api/meals/${editingMealId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+    const data = {
+      user_id: loggedUser.id,
+      title: titleInput.value,
+      description: descriptionInput.value,
+      portions: portionsInput.value,
+      location: locationInput.value,
+      delivery_details: deliveryDetailsInput.value,
+      latitude: selectedLat,
+      longitude: selectedLng,
+      pickup_time: pickupTimeInput.value,
+      price: priceInput.value,
+      allergens: allergens.join(", "),
+    };
 
-    editingMealId = null;
-    alert("Η αγγελία ενημερώθηκε!");
-  } else {
-    await fetch("http://localhost:3000/api/meals", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    });
+    try {
+      if (editingMealId) {
+        await fetch(`${API_URL}/api/meals/${editingMealId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
 
-    alert("Η αγγελία προστέθηκε!");
-  }
+        editingMealId = null;
+        alert("Η αγγελία ενημερώθηκε!");
+      } else {
+        await fetch(`${API_URL}/api/meals`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
 
-  mealForm.reset();
+        alert("Η αγγελία προστέθηκε!");
+      }
 
-  document
-    .querySelectorAll('input[name="allergen"]')
-    .forEach((checkbox) => {
-      checkbox.checked = false;
-    });
+      mealForm.reset();
 
-  if (pickMarker && pickMap) {
-    pickMap.removeLayer(pickMarker);
-    pickMarker = null;
-  }
+      document.querySelectorAll('input[name="allergen"]').forEach((checkbox) => {
+        checkbox.checked = false;
+      });
 
-  selectedLat = null;
-  selectedLng = null;
-  editingMealId = null;
+      if (pickMarker && pickMap) {
+        pickMap.removeLayer(pickMarker);
+        pickMarker = null;
+      }
 
-  loadMeals();
-});
+      selectedLat = null;
+      selectedLng = null;
+      editingMealId = null;
 
-// =====================
+      loadMeals();
+    } catch (err) {
+      console.log("Meal submit error:", err);
+      alert("Σφάλμα κατά την αποθήκευση.");
+    }
+  });
+}
+
 // DELETE
-// =====================
 async function deleteMeal(id) {
-  await fetch(`http://localhost:3000/api/meals/${id}`, {
+  const confirmDelete = confirm("Σίγουρα θέλεις να διαγράψεις την αγγελία;");
+
+  if (!confirmDelete) return;
+
+  await fetch(`${API_URL}/api/meals/${id}`, {
     method: "DELETE",
   });
 
   loadMeals();
 }
 
-// =====================
 // EDIT MEAL
-// =====================
 function editMeal(id) {
   const meal = allMeals.find((m) => Number(m.id) === Number(id));
 
   if (!meal) return;
 
-  title.value = meal.title;
-  description.value = meal.description;
-  portions.value = meal.portions;
-  location.value = meal.location;
-  delivery_details.value = meal.delivery_details || "";
+  const titleInput = document.getElementById("title");
+  const descriptionInput = document.getElementById("description");
+  const portionsInput = document.getElementById("portions");
+  const locationInput = document.getElementById("location");
+  const deliveryDetailsInput = document.getElementById("delivery_details");
+  const pickupTimeInput = document.getElementById("pickup_time");
+  const priceInput = document.getElementById("price");
 
-  pickup_time.value = meal.pickup_time ? meal.pickup_time.slice(0, 16) : "";
+  if (titleInput) titleInput.value = meal.title;
+  if (descriptionInput) descriptionInput.value = meal.description;
+  if (portionsInput) portionsInput.value = meal.portions;
+  if (locationInput) locationInput.value = meal.location;
+  if (deliveryDetailsInput) deliveryDetailsInput.value = meal.delivery_details || "";
 
-  price.value = meal.price;
+  if (pickupTimeInput) {
+    pickupTimeInput.value = meal.pickup_time ? meal.pickup_time.slice(0, 16) : "";
+  }
+
+  if (priceInput) priceInput.value = meal.price;
 
   selectedLat = meal.latitude;
   selectedLng = meal.longitude;
 
-  document
-    .querySelectorAll('input[name="allergen"]')
-    .forEach((checkbox) => {
-      checkbox.checked = false;
-    });
+  document.querySelectorAll('input[name="allergen"]').forEach((checkbox) => {
+    checkbox.checked = false;
+  });
 
   if (meal.allergens) {
-    const allergensArray = meal.allergens
-      .split(",")
-      .map((a) => a.trim());
+    const allergensArray = meal.allergens.split(",").map((a) => a.trim());
 
-    document
-      .querySelectorAll('input[name="allergen"]')
-      .forEach((checkbox) => {
-        checkbox.checked = allergensArray.includes(checkbox.value);
-      });
+    document.querySelectorAll('input[name="allergen"]').forEach((checkbox) => {
+      checkbox.checked = allergensArray.includes(checkbox.value);
+    });
   }
 
   if (pickMap && meal.latitude && meal.longitude) {
@@ -537,12 +591,16 @@ function editMeal(id) {
   });
 }
 
-// =====================
 // MODAL
-// =====================
 function openRequest(id, title, portions) {
   selectedMealId = id;
   selectedMealPortions = portions;
+
+  const requestModal = document.getElementById("requestModal");
+  const mealTitle = document.getElementById("mealTitle");
+  const portionSelect = document.getElementById("portionSelect");
+
+  if (!requestModal || !mealTitle || !portionSelect) return;
 
   requestModal.style.display = "block";
   mealTitle.innerText = title;
@@ -557,13 +615,17 @@ function openRequest(id, title, portions) {
 }
 
 function closeModal() {
-  requestModal.style.display = "none";
+  const requestModal = document.getElementById("requestModal");
+  if (requestModal) requestModal.style.display = "none";
 }
 
-// =====================
 // SEND REQUEST
-// =====================
 async function submitRequest() {
+  const portionSelect = document.getElementById("portionSelect");
+  const requestNote = document.getElementById("requestNote");
+
+  if (!portionSelect || !requestNote) return;
+
   const data = {
     meal_id: selectedMealId,
     consumer_id: loggedUser.id,
@@ -571,7 +633,7 @@ async function submitRequest() {
     note: requestNote.value,
   };
 
-  const res = await fetch("http://localhost:3000/api/requests", {
+  const res = await fetch(`${API_URL}/api/requests`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -590,18 +652,14 @@ async function submitRequest() {
   loadRequests();
 }
 
-// =====================
 // LOAD REQUESTS
-// =====================
 async function loadRequests() {
-  if (!requestsList) return;
+  if (!requestsList || !loggedUser) return;
 
   requestsList.innerHTML = "";
 
   if (loggedUser.role === "cook") {
-    const res = await fetch(
-      `http://localhost:3000/api/requests/${loggedUser.id}`
-    );
+    const res = await fetch(`${API_URL}/api/requests/${loggedUser.id}`);
 
     const data = await res.json();
 
@@ -672,9 +730,7 @@ async function loadRequests() {
   }
 
   if (loggedUser.role === "consumer") {
-    const res = await fetch(
-      `http://localhost:3000/api/myrequests/${loggedUser.id}`
-    );
+    const res = await fetch(`${API_URL}/api/myrequests/${loggedUser.id}`);
 
     const data = await res.json();
 
@@ -734,11 +790,9 @@ async function loadRequests() {
   }
 }
 
-// =====================
 // ACCEPT
-// =====================
 async function acceptRequest(id, portions) {
-  await fetch("http://localhost:3000/api/requests/accept", {
+  await fetch(`${API_URL}/api/requests/accept`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -753,11 +807,9 @@ async function acceptRequest(id, portions) {
   loadRequests();
 }
 
-// =====================
 // REJECT
-// =====================
 async function rejectRequest(id) {
-  await fetch("http://localhost:3000/api/requests/reject", {
+  await fetch(`${API_URL}/api/requests/reject`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -770,11 +822,9 @@ async function rejectRequest(id) {
   loadRequests();
 }
 
-// =====================
 // PICKUP
-// =====================
 async function pickupRequest(id) {
-  await fetch("http://localhost:3000/api/requests/pickup", {
+  await fetch(`${API_URL}/api/requests/pickup`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -787,11 +837,9 @@ async function pickupRequest(id) {
   loadRequests();
 }
 
-// =====================
 // NOT PICKUP
-// =====================
 async function notPickupRequest(id) {
-  await fetch("http://localhost:3000/api/requests/not-pickup", {
+  await fetch(`${API_URL}/api/requests/not-pickup`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -804,20 +852,16 @@ async function notPickupRequest(id) {
   loadRequests();
 }
 
-// =====================
 // LOAD RATINGS
-// =====================
 async function loadPendingRatings() {
-  if (loggedUser.role !== "consumer") return;
+  if (!loggedUser || loggedUser.role !== "consumer") return;
   if (!ratingsList) return;
 
-  await fetch(`http://localhost:3000/api/ratings/check-expired/${loggedUser.id}`, {
+  await fetch(`${API_URL}/api/ratings/check-expired/${loggedUser.id}`, {
     method: "POST",
   });
 
-  const res = await fetch(
-    `http://localhost:3000/api/ratings/pending/${loggedUser.id}`
-  );
+  const res = await fetch(`${API_URL}/api/ratings/pending/${loggedUser.id}`);
 
   const data = await res.json();
 
@@ -874,7 +918,7 @@ async function loadPendingRatings() {
 }
 
 async function submitRating(requestId, mealId, rating) {
-  const res = await fetch("http://localhost:3000/api/ratings", {
+  const res = await fetch(`${API_URL}/api/ratings`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -905,7 +949,7 @@ function formatDate(date) {
 }
 
 function escapeText(text) {
-  return text.replace(/'/g, "\\'");
+  return String(text).replace(/'/g, "\\'");
 }
 
 function getStatusLabel(status) {
@@ -936,6 +980,65 @@ function toggleRequests() {
   }
 }
 
+async function loadAdminDashboard() {
+  if (!loggedUser || loggedUser.role !== "admin") return;
+
+  try {
+    const res = await fetch(`${API_URL}/api/admin/dashboard`);
+
+    if (!res.ok) {
+      console.log("Admin dashboard error");
+      return;
+    }
+
+    const data = await res.json();
+
+    const adminStats = document.getElementById("adminStats");
+    const topDonor = document.getElementById("topDonor");
+    const topRatedMeals = document.getElementById("topRatedMeals");
+
+    if (!adminStats || !topDonor || !topRatedMeals) return;
+
+    adminStats.innerHTML = `
+      <div class="admin-card">
+        <h3>🍽️ Μερίδες που διαμοιράστηκαν τον τελευταίο μήνα</h3>
+        <p class="admin-number">${data.total_portions_last_month || 0}</p>
+      </div>
+    `;
+
+    if (data.top_donor) {
+      topDonor.innerHTML = `
+        <div class="admin-card">
+          <h3>${data.top_donor.username}</h3>
+          <p>Προσέφερε συνολικά <b>${data.top_donor.total_donated}</b> μερίδες</p>
+        </div>
+      `;
+    } else {
+      topDonor.innerHTML = "<p>Δεν υπάρχει ακόμα Top Donor.</p>";
+    }
+
+    if (!data.top_rated_meals || data.top_rated_meals.length === 0) {
+      topRatedMeals.innerHTML = "<p>Δεν υπάρχουν ακόμα αξιολογήσεις.</p>";
+      return;
+    }
+
+    topRatedMeals.innerHTML = "";
+
+    data.top_rated_meals.forEach((meal) => {
+      topRatedMeals.innerHTML += `
+        <div class="admin-card">
+          <h3>${meal.title}</h3>
+          <p><b>Μάγειρας:</b> ${meal.cook_name}</p>
+          <p><b>Μέση βαθμολογία:</b> ⭐ ${Number(meal.avg_rating).toFixed(1)}</p>
+          <p><b>Αξιολογήσεις:</b> ${meal.rating_count}</p>
+        </div>
+      `;
+    });
+  } catch (err) {
+    console.log("Admin dashboard fetch error:", err);
+  }
+}
+
 initMap();
 initPickMap();
 
@@ -944,6 +1047,10 @@ loadMeals();
 loadRequests();
 loadPendingRatings();
 
-if (loggedUser.role === "consumer") {
-  setInterval(loadPendingRatings, 5000);
+if (loggedUser && loggedUser.role === "admin") {
+  loadAdminDashboard();
+}
+
+if (loggedUser && loggedUser.role === "consumer") {
+  setInterval(loadPendingRatings, 60000);
 }

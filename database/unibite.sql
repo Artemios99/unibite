@@ -123,3 +123,9 @@ WHERE picked_up = 1 AND picked_up_at IS NULL;
 --26/5/2026
 ALTER TABLE meals
 ADD delivery_details TEXT;
+
+--1/6/2026
+
+INSERT INTO users (username, email, password, role, points)
+VALUES ('Admin', 'admin@gmail.com', '1234', 'admin', 0);
+
